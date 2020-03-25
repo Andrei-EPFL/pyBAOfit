@@ -52,6 +52,10 @@ class XiModel():
         self.num_lnk_bin = config['params'].getint('num_lnk_bin')
         self.k_norm = config['params'].getfloat('k_norm')
         self.k_interp = config['params'].getboolean('k_interp')
+        self.model = config['params']['model']
+        self.list_params = self.xi_model_params()
+        print("INFO: the required model is %s" % self.model)
+        print(("INFO: The parameters of the model are ["+', '.join(['%s']*len(self.list_params))+"]") % tuple(self.list_params))
         
         self.npoly = config['params'].getint('npoly')
 
@@ -88,7 +92,7 @@ class XiModel():
         try:
             k0, Pk0 = np.loadtxt(self.input_plin, comments='#', unpack=True, usecols=(0, 1))
         except:
-            print('Error: cannot read the linear power spectrum file.', file=sys.stderr)
+            print('ERROR: cannot read the linear power spectrum file.', file=sys.stderr)
             sys.exit(1)
 
         if self.k_interp == False:
@@ -104,7 +108,7 @@ class XiModel():
         try:
             kv, Pv = np.loadtxt(self.input_pvoid, comments='#', unpack=True, usecols=(0, 1))
         except:
-            print('Error: cannot read the linear power spectrum of voids file.', file=sys.stderr)
+            print('ERROR: cannot read the linear power spectrum of voids file.', file=sys.stderr)
             sys.exit(1)
 
         fv = interp1d(np.log(kv), kv*(Pv), kind='cubic')
@@ -116,7 +120,7 @@ class XiModel():
         Arguments: array of k and the linear P(k).
         Return: P_nw (k).'''
         if self.pnw_run == True:
-            print(self.cosmoparams)
+            print("INFO: The cosmological parameters for the nw P(k) are" + str(self.cosmoparams))
             Omega_m = self.cosmoparams["Omega_m"]
             Omega_b = self.cosmoparams["Omega_b"]
             h = self.cosmoparams["h"]
@@ -143,7 +147,7 @@ class XiModel():
             try:
                 knw, Pnw0 = np.loadtxt(self.input_pnw, comments='#', unpack=True, usecols=(0, 1))
             except:
-                print('Error: cannot read the linear nw power spectrum file.', file=sys.stderr)
+                print('ERROR: cannot read the linear nw power spectrum file.', file=sys.stderr)
                 sys.exit(1)
 
             fnw = interp1d(np.log(knw), np.log(Pnw0), kind='cubic')
@@ -181,7 +185,7 @@ class XiModel():
         xi = prefac * fft.irfft(phi * Mellnu, N) * N
         return rr, xi
 
-    def xi_model_FFTlog2(self, Snl):
+    def xi_model_FFTlinlog_pvoid(self, Snl):
         '''Compute the template correlation function.
         Arguments:
             k, Plin, Pnw: arrays for the linear power spectra;
@@ -198,7 +202,7 @@ class XiModel():
         xi = Xint(self.sm) / self.sm**2
         return xi
 
-    def xi_model_FFTlog(self, Snl):
+    def xi_model_FFTlog_pvoid(self, Snl):
         '''Compute the template correlation function.
         Arguments:
             k, Plin, Pnw: arrays for the linear power spectra;
@@ -215,23 +219,85 @@ class XiModel():
         xi = Xint(self.sm) / self.sm**2
         return xi
 
+    def xi_model_FFTlog_parab(self, Snl, c):
+        '''Compute the template correlation function.
+        Arguments:
+            k, Plin, Pnw: arrays for the linear power spectra;
+            Prt: the ratio between the void and linear non-wiggle power spectra;
+            nbin: s bins;
+            Snl: the BAO damping factor;
+        Return: xi_model.'''
+        Pm = ((self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw) * (1 + c * self.k2)
+        Pint = interp1d(np.log(self.k), np.log(Pm), kind='cubic')
+        Pkfn = lambda k: np.exp(Pint(np.log(k)))
+ 
+        s0, xi0 = self.xicalc(Pkfn, self.sm[0])
+        Xint = interp1d(s0, xi0*s0**2, kind='cubic')
+        xi = Xint(self.sm) / self.sm**2
+        return xi
 
-    # def xi_model_fast(self, Snl, lnk):
-    #     '''Compute the template correlation function.
-    #     Arguments:
-    #         k, Plin, Pnw: arrays for the linear power spectra;
-    #         Prt: the ratio between the void and linear non-wiggle power spectra;
-    #         nbin: number of s bins;
-    #         Snl: the BAO damping factor;
-    #         k2, lnk, eka2, j0: pre-computed values for the model.
-    #     Return: xi_model.'''
-    #     Pm = (self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw
-    #     Pm *= self.k2 * self.k * self.eka2 * (self.Pvoid / self.Pnw)
-    #     xim = np.zeros(self.nsbin)
-    #     if self.k_interp == True:
-    #         for i in range(self.nsbin):
-    #             xim[i] = np.sum(Pm * self.j0[i,:] * (lnk[1] - lnk[0]))
-    #     else:
-    #         for i in range(nbin):
-    #             xim[i] = simps(Pm * self.j0[i,:], lnk)
-    #     return xim
+    def xi_model_FFTlinlog_parab(self, Snl, c):
+        '''Compute the template correlation function.
+        Arguments:
+            k, Plin, Pnw: arrays for the linear power spectra;
+            Prt: the ratio between the void and linear non-wiggle power spectra;
+            nbin: s bins;
+            Snl: the BAO damping factor;
+        Return: xi_model.'''
+        Pm = ((self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw) * (1 + c * self.k2)
+        Pint = interp1d(np.log(self.k), self.k*Pm, kind='cubic')
+        Pkfn = lambda k: Pint(np.log(k))/k
+ 
+        s0, xi0 = self.xicalc(Pkfn, self.sm[0])
+        Xint = interp1d(s0, xi0*s0**2, kind='cubic')
+        xi = Xint(self.sm) / self.sm**2
+        return xi
+
+    def xi_model_fast_parab(self, Snl, c):
+        '''Compute the template correlation function.
+        Arguments:
+            k, Plin, Pnw: arrays for the linear power spectra;
+            Prt: the ratio between the void and linear non-wiggle power spectra;
+            nbin: number of s bins;
+            Snl: the BAO damping factor;
+            k2, lnk, eka2, j0: pre-computed values for the model.
+        Return: xi_model.'''
+        lnk = np.log(self.k)
+        Pm = (self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw
+        Pm *= self.k2 * self.k * self.eka2 * (1 + c * self.k2)
+        xim = np.zeros(self.nsbin)
+        if self.k_interp == True:
+            for i in range(self.nsbin):
+                xim[i] = np.sum(Pm * self.j0[i,:] * (lnk[1] - lnk[0]))
+        else:
+            for i in range(nbin):
+                xim[i] = simps(Pm * self.j0[i,:], lnk)
+        return xim
+
+    def xi_model(self, params):
+        if(self.model == 'xi_model_FFTlinlog_pvoid'):
+            return self.xi_model_FFTlinlog_pvoid(params[1])
+        if(self.model == 'xi_model_FFTlog_pvoid'):
+            return self.xi_model_FFTlog_pvoid(params[1])
+        if(self.model == 'xi_model_FFTlog_parab'):
+            return self.xi_model_FFTlog_parab(params[1], params[2])
+        if(self.model == 'xi_model_FFTlinlog_parab'):
+            return self.xi_model_FFTlinlog_parab(params[1], params[2])
+        if(self.model == 'xi_model_fast_parab'):
+            return self.xi_model_fast_parab(params[1], params[2])
+        print('ERROR: The model %s does not exist! Exiting the code.' %(self.model))
+        sys.exit(1)
+
+    def xi_model_params(self):
+        if(self.model == 'xi_model_FFTlinlog_pvoid'):
+            return ['alpha', 'B', 'Snl']
+        if(self.model == 'xi_model_FFTlog_pvoid'):
+            return ['alpha', 'B', 'Snl']
+        if(self.model == 'xi_model_FFTlog_parab'):
+            return ['alpha', 'B', 'Snl', 'c']
+        if(self.model == 'xi_model_FFTlinlog_parab'):
+            return ['alpha', 'B', 'Snl', 'c']
+        if(self.model == 'xi_model_fast_parab'):
+            return ['alpha', 'B', 'Snl', 'c']
+        print('ERROR: The model %s does not exist! Exiting the code.' %(self.model))
+        sys.exit(1)

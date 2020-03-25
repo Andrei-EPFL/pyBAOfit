@@ -18,12 +18,12 @@ def get_index(sd, fitmin, fitmax):
             break
 
     if imin == -1 or imax == -1:
-        print('Error: cannot find the fitting range in data.', file=sys.stderr)
+        print('ERROR: cannot find the fitting range in data.', file=sys.stderr)
         sys.exit(1)
 
     nidx = imax - imin
     if nidx < 1:
-        print('Error: cannot find enough bins for fitting.', file=sys.stderr)
+        print('ERROR: cannot find enough bins for fitting.', file=sys.stderr)
         sys.exit(1)
 
     return [imin, imax, nidx]
@@ -39,16 +39,16 @@ class XiData():
         
         self.sd, self.xid, self.ndbin = self.get_xid()
 
-        print('Get the indices of data for fitting.')
+        print('STATUS: Get the indices of data for fitting.')
         self.imin, self.imax, self.nidx = get_index(self.sd, self.fit_smin, self.fit_smax)
         
 
     def get_xid(self):    
-        print('Read the input 2PCF to be fitted.')
+        print('STATUS: Read the input 2PCF to be fitted.')
         try:
             sd, xid = np.loadtxt(self.input_data, usecols=(0, 1), unpack=True)
             ndbin = sd.size
         except:
-            print('Error: cannot read the input data.', file=sys.stderr)
+            print('ERROR: cannot read the input data.', file=sys.stderr)
             sys.exit(1)
         return [sd, xid, ndbin]

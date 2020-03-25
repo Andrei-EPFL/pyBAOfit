@@ -67,19 +67,20 @@ class Chi2Class():
         self.xim = xim_var
         self.xid = xid_var
         
+        self.list_params = self.xim.list_params
         self.chi2_norm = self.covmat.nmock - self.xid.nidx - 2
 
-        print('Initialize matrices for least square fitting of the nuisance params.')
+        print('STATUS: Initialize matrices for least square fitting of the nuisance params.')
         self.basis, self.A, self.M = init_lstsq(self.xid.sd, self.covmat.Rcov, self.xim.npoly, self.xid.imin, self.xid.imax)
 
-    def chi2_func(self, params, alpha):
+    def chi2_func(self, alpha, params):
         '''Define the (log) likelihood.'''
-        B, Snl = params[0], params[1]
+        B = params[0]
         imin = self.xid.imin
         imax = self.xid.imax
 
         # Compute the model 2PCF with a given alpha
-        fxim = interp1d(self.xim.sm, self.xim.xi_model_FFTlog(Snl), kind='cubic')
+        fxim = interp1d(self.xim.sm, self.xim.xi_model(params), kind='cubic')
         xi = fxim(self.xid.sd[imin:imax] * alpha)
 
         # Least square fitting of nuisance parameters
@@ -93,15 +94,15 @@ class Chi2Class():
         chisq = np.sum((fwd_subst(self.covmat.Rcov, diff))**2)
         return chisq * self.chi2_norm
 
-    def best_fit(self, params, alpha):
+    def best_fit(self, alpha, params):
         '''Compute the best-fit theoretical curve.'''
-        B, Snl = params[0], params[1]
+        B = params[0]
         imin = self.xid.imin
         imax = self.xid.imax
         sm = self.xim.sm
 
         # Compute the model 2PCF with a given alpha
-        fxim = interp1d(sm, self.xim.xi_model_FFTlog(Snl), kind='cubic')
+        fxim = interp1d(sm, self.xim.xi_model(params), kind='cubic')
         xi = fxim(self.xid.sd[imin:imax] * alpha)
 
         # Least square fitting of nuisance parameters

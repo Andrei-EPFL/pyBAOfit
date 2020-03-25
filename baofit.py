@@ -15,7 +15,7 @@ def main():
     input_mocks = sys.argv[2]
     input_pvoid = sys.argv[3]
         
-    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config.ini'
+    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer_test/config.ini'
     if not os.path.isfile(config_file):
         print("ERROR: The configuration file: " + config_file + " does not exist!")
         sys.exit(1)
@@ -58,29 +58,28 @@ def main():
     xim_var = XiModel(config_file, input_pvoid, cosmoparams)
 
     if xim_var.npoly >= xid_var.nidx:
-        print('Error: too many nuisance parameters.', file=sys.stderr)
+        print('ERROR: too many nuisance parameters.', file=sys.stderr)
         sys.exit(1)
 
-    print('Read/Compute the covariance matrix.')
+    print('STATUS: Read/Compute the covariance matrix.')
     covmat_var = CovMat(config_file, input_mocks)
     
     if covmat_var.nmock < xid_var.nidx + 3:
-        print('Error: the number of mocks is not enough.', file=sys.stderr)
+        print('ERROR: the number of mocks is not enough.', file=sys.stderr)
         sys.exit(1)
     if xid_var.ndbin != covmat_var.Rcov.shape[0]:
-        print('Error: bin size of data and mocks do not match.', file=sys.stderr)
+        print('ERROR: bin size of data and mocks do not match.', file=sys.stderr)
         sys.exit(1)
     
-    print("The number of bins is %i" %xid_var.nidx)
+    print("INFO: The number of bins is %i" %xid_var.nidx)
     
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
-    print(chi2_var.chi2_func([1, 1], 1))
+    print(chi2_var.chi2_func(1, [1, 1]))
     
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
-    print(multinest_var.loglike([1,1,1], 3, 3))
+    print(multinest_var.loglike([1,1,1,1], 3, 3))
     sys.exit()
     
-    multinest_var = MultinestClass(config_file, outbase, chi2_var)
     multinest_var.run_multinest()
     multinest_var.analyse_multinest()
     
