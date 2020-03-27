@@ -75,7 +75,7 @@ class XiModel():
         self.k, self.Plin = self.pk_lin()
         self.k2 = self.k**2
 
-        self.Pvoid = self.pk_void()
+        if('pvoid' in self.model): self.Pvoid = self.pk_void()
         self.Pnw = self.pk_nw()
 
         self.eka2 = np.exp(-self.k2 * self.damp_a**2) * 0.5 / np.pi**2
@@ -274,6 +274,23 @@ class XiModel():
                 xim[i] = simps(Pm * self.j0[i,:], lnk)
         return xim
 
+    def xi_model_FFTlinlog_galaxy(self, Snl):
+        '''Compute the template correlation function.
+        Arguments:
+            k, Plin, Pnw: arrays for the linear power spectra;
+            Prt: the ratio between the void and linear non-wiggle power spectra;
+            nbin: s bins;
+            Snl: the BAO damping factor;
+        Return: xi_model.'''
+        Pm = ((self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw)
+        Pint = interp1d(np.log(self.k), self.k*Pm, kind='cubic')
+        Pkfn = lambda k: Pint(np.log(k))/k
+ 
+        s0, xi0 = self.xicalc(Pkfn, self.sm[0])
+        Xint = interp1d(s0, xi0*s0**2, kind='cubic')
+        xi = Xint(self.sm) / self.sm**2
+        return xi
+
     def xi_model(self, params):
         if(self.model == 'xi_model_FFTlinlog_pvoid'):
             return self.xi_model_FFTlinlog_pvoid(params[1])
@@ -285,19 +302,29 @@ class XiModel():
             return self.xi_model_FFTlinlog_parab(params[1], params[2])
         if(self.model == 'xi_model_fast_parab'):
             return self.xi_model_fast_parab(params[1], params[2])
+        if(self.model == 'xi_model_FFTlinlog_galaxy'):
+            return self.xi_model_FFTlinlog_galaxy(params[1])
         print('ERROR: The model %s does not exist! Exiting the code.' %(self.model))
         sys.exit(1)
 
     def xi_model_params(self):
         if(self.model == 'xi_model_FFTlinlog_pvoid'):
+            print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl']
         if(self.model == 'xi_model_FFTlog_pvoid'):
+            print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl']
         if(self.model == 'xi_model_FFTlog_parab'):
+            print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl', 'c']
         if(self.model == 'xi_model_FFTlinlog_parab'):
+            print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl', 'c']
         if(self.model == 'xi_model_fast_parab'):
+            print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl', 'c']
+        if(self.model == 'xi_model_FFTlinlog_galaxy'):
+            print('INFO: Using the model: %s.' %(self.model))
+            return ['alpha', 'B', 'Snl']
         print('ERROR: The model %s does not exist! Exiting the code.' %(self.model))
         sys.exit(1)

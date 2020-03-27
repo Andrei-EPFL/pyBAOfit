@@ -11,11 +11,12 @@ from mychi2 import Chi2Class
 from mymultinest import MultinestClass
 
 def main():
-    input_data = sys.argv[1]
-    input_mocks = sys.argv[2]
-    input_pvoid = sys.argv[3]
+    output_dir = sys.argv[1]
+    input_data = sys.argv[2]
+    input_mocks = sys.argv[3]
+    input_pvoid = sys.argv[4]
         
-    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer_test/config.ini'
+    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config.ini'
     if not os.path.isfile(config_file):
         print("ERROR: The configuration file: " + config_file + " does not exist!")
         sys.exit(1)
@@ -23,25 +24,24 @@ def main():
     config = configparser.ConfigParser()
     config.read(config_file)
     cosmoparams = {
-            "h":float(config['cosmoparams']['h']),
-            "Omega_m":float(config['cosmoparams']['Omega_m']),
-            "Omega_b":float(config['cosmoparams']['Omega_b']),
-            "Tcmb":float(config['cosmoparams']['Tcmb']),
-            #"w":float(config['cosmoparams']['w']),
-            #"omnuh2":float(config['cosmoparams']['omnuh2']),
-            #"omk":float(config['cosmoparams']['omk']),
-            #"helium_fraction":float(config['cosmoparams']['helium_fraction']),
-            #"massless_neutrinos":float(config['cosmoparams']['massless_neutrinos']),
-            #"nu_mass_eigenstates":float(config['cosmoparams']['nu_mass_eigenstates']),
-            #"massive_neutrinos":float(config['cosmoparams']['massive_neutrinos']),
-            #"nu_mass_fractions":float(config['cosmoparams']['nu_mass_fractions']),
-            #"transfer_kmax":float(config['cosmoparams']['transfer_kmax']),
-            #"transfer_redshift":float(config['cosmoparams']['transfer_redshift']),
-            "ns":float(config['cosmoparams']['ns'])
-            #"scalar_amp":float(config['cosmoparams']['scalar_amp'])
+        "h":float(config['cosmoparams']['h']),
+        "Omega_m":float(config['cosmoparams']['Omega_m']),
+        "Omega_b":float(config['cosmoparams']['Omega_b']),
+        "Tcmb":float(config['cosmoparams']['Tcmb']),
+        #"w":float(config['cosmoparams']['w']),
+        #"omnuh2":float(config['cosmoparams']['omnuh2']),
+        #"omk":float(config['cosmoparams']['omk']),
+        #"helium_fraction":float(config['cosmoparams']['helium_fraction']),
+        #"massless_neutrinos":float(config['cosmoparams']['massless_neutrinos']),
+        #"nu_mass_eigenstates":float(config['cosmoparams']['nu_mass_eigenstates']),
+        #"massive_neutrinos":float(config['cosmoparams']['massive_neutrinos']),
+        #"nu_mass_fractions":float(config['cosmoparams']['nu_mass_fractions']),
+        #"transfer_kmax":float(config['cosmoparams']['transfer_kmax']),
+        #"transfer_redshift":float(config['cosmoparams']['transfer_redshift']),
+        "ns":float(config['cosmoparams']['ns'])
+        #"scalar_amp":float(config['cosmoparams']['scalar_amp'])
     }
-    output_dir = config['paths']['output_dir']
-
+    
     if not os.path.isfile(input_mocks):
         print("ERROR: The file: " + input_mocks + " does not exist!")
         sys.exit(1)
@@ -74,17 +74,18 @@ def main():
     print("INFO: The number of bins is %i" %xid_var.nidx)
     
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
-    print(chi2_var.chi2_func(1, [1, 1]))
+    #print(chi2_var.chi2_func(1, [1, 1, 1]))
     
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
-    print(multinest_var.loglike([1,1,1,1], 3, 3))
-    sys.exit()
+    #print(multinest_var.loglike([1,1,1,1], 4, 4))
+    #sys.exit()
     
     multinest_var.run_multinest()
     multinest_var.analyse_multinest()
     
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print("USAGE: python " + sys.argv[0] + " avg_file 100_file templatepk_file")
+    if len(sys.argv) != 5:
+        print("USAGE: python " + sys.argv[0] + " outpath avg_file 100_file template_pk_file")
+        print("USAGE: If do not need a template file put NONE instead of the template_pk_file")
         sys.exit(2)
     main()

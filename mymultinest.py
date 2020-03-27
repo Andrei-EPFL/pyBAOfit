@@ -13,12 +13,12 @@ class MultinestClass():
         self.outbase = outbase
         self.chi2_var = chi2_var
 
-        self.list_params = chi2_var.list_params
-        self.n_params = len(self.list_params)
-        print(("INFO: The parameters of the model are ["+', '.join(['%s']*len(self.list_params))+"]") % tuple(self.list_params))
+        self.parameters = self.chi2_var.list_params
+        self.n_params = len(self.parameters)
+        print(("INFO: The parameters of the model are ["+', '.join(['%s']*len(self.parameters))+"]") % tuple(self.parameters))
         
         self.prior_params = {}
-        for p in self.list_params:
+        for p in self.parameters:
             self.prior_params[p] = tuple(map(float,config.get('priors', p).split(',')))
         print("INFO: The priors of the parameters are " + str(self.prior_params))
         self.c_flat_min = config.getfloat('shapepriors', 'c_flat_min')
@@ -27,13 +27,13 @@ class MultinestClass():
                 
     def prior(self, cube, ndim, nparams):
         for i in range(ndim):
-            val_max =self.self.prior_params[self.list_params[i]][1]
-            val_min =self.self.prior_params[self.list_params[i]][0]
+            val_max = self.prior_params[self.parameters[i]][1]
+            val_min = self.prior_params[self.parameters[i]][0]
             cube[i] = cube[i] * (val_max - val_min) + val_min
 
     def loglike(self, cube, ndim, nparams):
-        lnlike = -0.5 * self.chi2_var.chi2_func(cube[0], cube[1:])
-        if('c' not in self.list_params):
+        lnlike = -0.5 * self.chi2_var.chi2_func(cube[0], cube[1:ndim])
+        if('c' not in self.parameters or self.c_width == float("inf")):
             return lnlike
         if(cube[3] < self.c_flat_min):
             lnlike = lnlike - 0.5 * ( (cube[3] - self.c_flat_min) / self.c_width )**2
