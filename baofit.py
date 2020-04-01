@@ -16,7 +16,7 @@ def main():
     input_mocks = sys.argv[3]
     input_pvoid = sys.argv[4]
         
-    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config.ini'
+    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer_test/config.ini'
     if not os.path.isfile(config_file):
         print("ERROR: The configuration file: " + config_file + " does not exist!")
         sys.exit(1)
@@ -74,11 +74,12 @@ def main():
     print("INFO: The number of bins is %i" %xid_var.nidx)
     
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
-    #print(chi2_var.chi2_func(1, [1, 1, 1]))
+    print(chi2_var.chi2_func(1, [1, 1, 1]))
     
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
-    #print(multinest_var.loglike([1,1,1,1], 4, 4))
-    #sys.exit()
+    print(multinest_var.loglike([1,1,1,1], 4, 4))
+    print("test")
+    sys.exit()
     
     multinest_var.run_multinest()
     multinest_var.analyse_multinest()

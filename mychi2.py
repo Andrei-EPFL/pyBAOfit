@@ -69,7 +69,7 @@ class Chi2Class():
         
         self.list_params = self.xim.list_params
         self.chi2_norm = self.covmat.nmock - self.xid.nidx - 2
-
+      
         print('STATUS: Initialize matrices for least square fitting of the nuisance params.')
         self.basis, self.A, self.M = init_lstsq(self.xid.sd, self.covmat.Rcov, self.xim.npoly, self.xid.imin, self.xid.imax)
 
@@ -86,6 +86,7 @@ class Chi2Class():
         # Least square fitting of nuisance parameters
         dxi = self.xid.xid[imin:imax] - xi * B**2
         poly = np.dot(self.M[:, imin:imax], dxi)
+        
         a_poly = bwd_subst(self.A, poly)
         
         # Compute chi-squared
@@ -109,7 +110,7 @@ class Chi2Class():
         dxi = self.xid.xid[imin:imax] - xi * B**2
         poly = np.dot(self.M[:, imin:imax], dxi)
         a_poly = bwd_subst(self.A, poly)
-
+        
         # Compute best-fit
         if alpha >= 1:
             imin0, imax0, nidx0 = get_index(sm, sm[1], sm[-2] / alpha)

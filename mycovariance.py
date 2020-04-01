@@ -12,7 +12,7 @@ class CovMat():
         self.input_mocks = input_mocks
                 
         self.nmock, self.Rcov = self.get_cov()
-        
+
     def get_cov(self):
         '''Read/Compute the pre-processed covariance matrix.
         Return: [Nmock, Rcov], where Rcov is the upper triangular matrix from the
@@ -36,10 +36,10 @@ class CovMat():
             # Compute the mock matrix M (C = M^T . M)
             mean = np.mean(ximock, axis=0)
             ximock -= mean
-
+            
             # QR decomposition of M
             Rcov = np.linalg.qr(ximock, mode='r')
-
+            
             if self.save_cov == True:
                 np.savetxt(self.cov_file, Rcov, header=str(Nmock))
         else:         # comput_cov = False
