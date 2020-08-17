@@ -33,6 +33,10 @@ class CovMat():
                 ximock[i] = np.loadtxt(mocks[i], usecols=(1, ), unpack=True)
             ximock = np.array(ximock)
 
+            Rcov = np.cov(ximock.T)
+            
+            return [Nmock, Rcov]
+        
             # Compute the mock matrix M (C = M^T . M)
             mean = np.mean(ximock, axis=0)
             ximock -= mean
@@ -44,7 +48,7 @@ class CovMat():
                 np.savetxt(self.cov_file, Rcov, header=str(Nmock))
         else:         # comput_cov = False
             with open(self.cov_file) as f:
-                Nmock = int(f.readline())
+                Nmock = int(f.readline()[1:])
             Rcov = np.loadtxt(self.cov_file, skiprows=1)
 
         return [Nmock, Rcov]

@@ -3,7 +3,8 @@ import sys
 import os
 import configparser
 import numpy as np
-
+from scipy.interpolate import interp1d
+import matplotlib.pyplot as pt
 from mydata import XiData
 from mycovariance import CovMat
 from mymodel import XiModel
@@ -16,7 +17,7 @@ def main():
     input_mocks = sys.argv[3]
     input_pvoid = sys.argv[4]
         
-    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer_test/config.ini'
+    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config.ini'
     if not os.path.isfile(config_file):
         print("ERROR: The configuration file: " + config_file + " does not exist!")
         sys.exit(1)
@@ -52,11 +53,10 @@ def main():
     
     bname = input_data.split('/')[-1]
     outbase = output_dir + '/BAOfit_' + bname + "_"
-    
-    
+
     xid_var = XiData(config_file, input_data)
     xim_var = XiModel(config_file, input_pvoid, cosmoparams)
-
+    
     if xim_var.npoly >= xid_var.nidx:
         print('ERROR: too many nuisance parameters.', file=sys.stderr)
         sys.exit(1)
@@ -72,14 +72,22 @@ def main():
         sys.exit(1)
     
     print("INFO: The number of bins is %i" %xid_var.nidx)
-    
+    pt.matshow(covmat_var.Rcov, vmin=-3.47e-7, vmax=0.5e-6)
+    print(np.min(covmat_var.Rcov))
+    print(np.max(covmat_var.Rcov))
+    print(covmat_var.nmock)
+    print(len(covmat_var.Rcov[covmat_var.Rcov==0]))
+    print(covmat_var.Rcov.shape)
+    pt.colorbar()
+    pt.show()
+    exit()
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
-    print(chi2_var.chi2_func(1, [1, 1, 1]))
+    #print(chi2_var.chi2_func(1, [1, 1, 1]))
     
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
-    print(multinest_var.loglike([1,1,1,1], 4, 4))
-    print("test")
-    sys.exit()
+    #print(multinest_var.loglike([1,1,1,1], 4, 4))
+    #print("test")
+    #sys.exit()
     
     multinest_var.run_multinest()
     multinest_var.analyse_multinest()

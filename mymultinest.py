@@ -9,6 +9,7 @@ class MultinestClass():
         config.read(config_file)
         self.live_points = config["multinest"].getint("live_points")
         self.tol = config["multinest"].getfloat("tol")
+        self.verbose = config["multinest"].getboolean("verbose")
         
         self.outbase = outbase
         self.chi2_var = chi2_var
@@ -43,7 +44,7 @@ class MultinestClass():
 
     def run_multinest(self):
         pmn.run(self.loglike, self.prior, self.n_params, outputfiles_basename=self.outbase, resume=True, \
-            verbose=True, n_live_points=self.live_points, evidence_tolerance=self.tol)
+            verbose=self.verbose, n_live_points=self.live_points, evidence_tolerance=self.tol)
         
     def analyse_multinest(self):
         res = pmn.Analyzer(outputfiles_basename=self.outbase, n_params=self.n_params)

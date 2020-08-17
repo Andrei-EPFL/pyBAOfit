@@ -217,14 +217,14 @@ class XiModel():
             Pint = interp1d(np.log(self.k), self.k*Pm, kind='cubic')
             Pkfn = lambda k: Pint(np.log(k))/k
         elif (self.method == 'fast'):
-            Pm *= self.k2 * self.k * self.eka2 * (1 + c * self.k2)
+            Pm *= self.k2 * self.k * self.eka2
             xim = np.zeros(self.nsbin)
             if self.k_interp == True:
                 for i in range(self.nsbin):
-                    xim[i] = np.sum(Pm * self.j0[i,:] * (lnk[1] - lnk[0]))
+                    xim[i] = np.sum(Pm * self.j0[i,:] * (np.log(self.k[1]) - np.log(self.k[0])))
             else:
-                for i in range(nbin):
-                    xim[i] = simps(Pm * self.j0[i,:], lnk)
+                for i in range(self.nsbin):
+                    xim[i] = simps(Pm * self.j0[i,:], np.log(self.k))
             return xim
         else:
             print('ERROR: The method %s does not exist! Exiting the code.' %(self.method))
