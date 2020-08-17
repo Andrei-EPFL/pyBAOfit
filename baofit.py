@@ -3,8 +3,6 @@ import sys
 import os
 import configparser
 import numpy as np
-from scipy.interpolate import interp1d
-import matplotlib.pyplot as pt
 from mydata import XiData
 from mycovariance import CovMat
 from mymodel import XiModel
@@ -72,15 +70,7 @@ def main():
         sys.exit(1)
     
     print("INFO: The number of bins is %i" %xid_var.nidx)
-    pt.matshow(covmat_var.Rcov, vmin=-3.47e-7, vmax=0.5e-6)
-    print(np.min(covmat_var.Rcov))
-    print(np.max(covmat_var.Rcov))
-    print(covmat_var.nmock)
-    print(len(covmat_var.Rcov[covmat_var.Rcov==0]))
-    print(covmat_var.Rcov.shape)
-    pt.colorbar()
-    pt.show()
-    exit()
+    
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
     #print(chi2_var.chi2_func(1, [1, 1, 1]))
     
