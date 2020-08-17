@@ -15,7 +15,7 @@ def main():
     input_mocks = sys.argv[3]
     input_pvoid = sys.argv[4]
         
-    config_file = '/home/epfl/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config.ini'
+    config_file = '/home/astro/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config_test.ini'
     if not os.path.isfile(config_file):
         print("ERROR: The configuration file: " + config_file + " does not exist!")
         sys.exit(1)
@@ -75,7 +75,7 @@ def main():
     #print(chi2_var.chi2_func(1, [1, 1, 1]))
     
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
-    #print(multinest_var.loglike([1,1,1,1], 4, 4))
+    #print(multinest_var.loglike([1,1,1, 1], 4, 4))
     #print("test")
     #sys.exit()
     

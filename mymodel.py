@@ -3,6 +3,7 @@ import configparser
 import numpy as np
 import numpy.fft as fft
 from scipy.interpolate import interp1d
+from scipy.integrate import simps
 from scipy.special import spherical_jn, loggamma
 
 def windowfn(x, dlnxleft=0.46, dlnxright=0.46):
@@ -221,7 +222,7 @@ class XiModel():
             xim = np.zeros(self.nsbin)
             if self.k_interp == True:
                 for i in range(self.nsbin):
-                    xim[i] = np.sum(Pm * self.j0[i,:] * (np.log(self.k[1]) - np.log(self.k[0])))
+                    xim[i] = np.sum(Pm * self.j0[i,:]) * (np.log(self.k[1]) - np.log(self.k[0]))
             else:
                 for i in range(self.nsbin):
                     xim[i] = simps(Pm * self.j0[i,:], np.log(self.k))
