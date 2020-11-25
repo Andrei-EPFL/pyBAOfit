@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import sys
 import os
+import shutil
+import json
+import argparse
 import configparser
 import numpy as np
 from mydata import XiData
@@ -8,14 +11,33 @@ from mycovariance import CovMat
 from mymodel import XiModel
 from mychi2 import Chi2Class
 from mymultinest import MultinestClass
+from myplot import find_peaks_in_chi2alpha, plot_best_fit
 
 def main():
-    output_dir = sys.argv[1]
-    input_data = sys.argv[2]
-    input_mocks = sys.argv[3]
-    input_pvoid = sys.argv[4]
-        
-    config_file = '/home/astro/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config_test.ini'
+    #### Arguments of the code    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, help="ini file holding configuration")
+    parser.add_argument("--output_dir", type=str, help="output directory (overrides config file)")
+    parser.add_argument("--input_data", type=str, help="input file (file to be fitted) (same)")
+    parser.add_argument("--input_mocks", type=str, help="file that contains the paths to all mocks for covariance (same)")
+    parser.add_argument("--input_pvoid", type=str, help="void template file (same)")
+    parser.add_argument("--model", type=str, help="the required model: pvoid, galaxy, parab (same)")
+    parser.add_argument("--method", type=str, help="integration method: FFTlinlog, FFTlog, fast (same)")
+    parser.add_argument("--kmin", type=float, help="min k of the P(k) template (same)")
+    parser.add_argument("--kmax", type=float, help="max k of the P(k) template (same)")
+    parser.add_argument("--num_lnk_bin", type=int, help="number of log spaced k bins for the P(k) template (same)")
+    parser.add_argument("--fit_smin", type=float, help="min s range for fit (same)")
+    parser.add_argument("--fit_smax", type=float, help="max s range for fit (same)")
+    parser.add_argument("--min_s_index", type=int, help="min s index to be used from the data CF (same)")
+
+    args = parser.parse_args()
+
+    #### Configuration file
+    config_file = args.config # config file
+    if config_file is None:
+        config_file = '/home/astro/variu/phd/voids/chengscodes/BAOfit/voidnw_FFTlog_myVer/config.ini'
+    config_name = os.path.basename(config_file)
+
     if not os.path.isfile(config_file):
         print("ERROR: The configuration file: " + config_file + " does not exist!")
         sys.exit(1)
@@ -41,26 +63,42 @@ def main():
         #"scalar_amp":float(config['cosmoparams']['scalar_amp'])
     }
     
-    if not os.path.isfile(input_mocks):
-        print("ERROR: The file: " + input_mocks + " does not exist!")
-        sys.exit(1)
-
+    #### Output directory
+    output_dir = args.output_dir
+    if output_dir is None:
+        output_dir = config["paths"]["output_dir"]
+    
     if not os.path.isdir(output_dir):
         print('ERROR: output_dir "{}" does not exist.'.format(output_dir), file=sys.stderr)
         sys.exit(1)
     
+    #### Copy the config file into the output directory
+    if not os.path.isfile(output_dir + config_name):
+        shutil.copy(config_file, output_dir + config_name)
+    
+    #### Write the arguments in a file
+    if not os.path.isfile(output_dir + 'args.ini'):
+        with open(output_dir + 'args.ini', 'w') as f:
+            json.dump(args.__dict__, f, indent=2)
+    
+    #### Input data
+    input_data = args.input_data
+    if input_data is None:
+        input_data = config["paths"]["input_data"]
+    
     bname = input_data.split('/')[-1]
     outbase = output_dir + '/BAOfit_' + bname + "_"
-
-    xid_var = XiData(config_file, input_data)
-    xim_var = XiModel(config_file, input_pvoid, cosmoparams)
+    
+    #### Define the class variables
+    xid_var = XiData(config_file, args)
+    xim_var = XiModel(config_file, args, cosmoparams)
     
     if xim_var.npoly >= xid_var.nidx:
         print('ERROR: too many nuisance parameters.', file=sys.stderr)
         sys.exit(1)
 
     print('STATUS: Read/Compute the covariance matrix.')
-    covmat_var = CovMat(config_file, input_mocks)
+    covmat_var = CovMat(config_file, args)
     
     if covmat_var.nmock < xid_var.nidx + 3:
         print('ERROR: the number of mocks is not enough.', file=sys.stderr)
@@ -72,19 +110,14 @@ def main():
     print("INFO: The number of bins is %i" %xid_var.nidx)
     
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
-    #print(chi2_var.chi2_func(1, [1, 1, 1]))
-    
+    #find_peaks_in_chi2alpha(output_dir, os.path.basename(input_data), chi2_var)
+    #plot_best_fit(chi2_var, xim_var)
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
-    #print(multinest_var.loglike([1,1,1, 1], 4, 4))
     #print("test")
     #sys.exit()
     
-    multinest_var.run_multinest()
-    multinest_var.analyse_multinest()
+    #multinest_var.run_multinest()
+    #multinest_var.analyse_multinest()
     
 if __name__ == '__main__':
-    if len(sys.argv) != 5:
-        print("USAGE: python " + sys.argv[0] + " outpath avg_file 100_file template_pk_file")
-        print("USAGE: If do not need a template file put NONE instead of the template_pk_file")
-        sys.exit(2)
     main()

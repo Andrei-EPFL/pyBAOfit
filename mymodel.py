@@ -44,17 +44,33 @@ class XiModel():
     This is a class of the 2PCF model.
     It computes the required model and returns it.
     '''
-    def __init__(self, config_file, input_pvoid, cosmoparams):
+    def __init__(self, config_file, args, cosmoparams):
         config = configparser.ConfigParser()
         config.read(config_file)
         self.cosmoparams = cosmoparams
-        self.kmin = config['params'].getfloat('kmin')
-        self.kmax = config['params'].getfloat('kmax')
-        self.num_lnk_bin = config['params'].getint('num_lnk_bin')
+        
+        self.kmin = args.kmin
+        if self.kmin is None:
+            self.kmin = config['params'].getfloat('kmin')
+        
+        self.kmax = args.kmax
+        if self.kmax is None:
+            self.kmax = config['params'].getfloat('kmax')
+        
+        self.num_lnk_bin = args.num_lnk_bin
+        if self.num_lnk_bin is None:
+            self.num_lnk_bin = config['params'].getint('num_lnk_bin')
+        
+        self.model = args.model
+        if self.model is None:
+            self.model = config["params"]["model"]
+
+        self.method = args.method
+        if self.method is None:
+            self.method = config['params']['method']
+        
         self.k_norm = config['params'].getfloat('k_norm')
         self.k_interp = config['params'].getboolean('k_interp')
-        self.model = config['params']['model']
-        self.method = config['params']['method']
         self.list_params = self.xi_model_params()
         print("INFO: the required model is %s" % self.model)
         print("INFO: the required method is %s" % self.method)
@@ -73,17 +89,19 @@ class XiModel():
         if(self.pnw_run==False):
             self.input_pnw = config['paths']['input_pnw']
         
+        input_pvoid = args.input_pvoid
+        if input_pvoid is None:
+            input_pvoid = config["paths"]["input_pvoid"]
         self.input_pvoid = input_pvoid
 
         self.k, self.Plin = self.pk_lin()
         self.k2 = self.k**2
+        self.Pnw = self.pk_nw()
 
         if('pvoid' in self.model): self.Pvoid = self.pk_void()
-        self.Pnw = self.pk_nw()
 
         self.eka2 = np.exp(-self.k2 * self.damp_a**2) * 0.5 / np.pi**2
         self.sm = np.linspace(self.smin, self.smax, self.num_s_bin)
-
         self.nkbin = self.k.size
         self.nsbin = self.sm.size
 
@@ -236,6 +254,56 @@ class XiModel():
         Xint = interp1d(s0, xi0*s0**2, kind='cubic')
         xi = Xint(self.sm) / self.sm**2
         return xi
+    
+    def xi_model_2(self, params):
+        '''Compute the template correlation function.
+        Arguments:
+            k, Plin, Pnw: arrays for the linear power spectra;
+            Prt: the ratio between the void and linear non-wiggle power spectra;
+            nbin: s bins;
+            Snl: the BAO damping factor;
+        Return: xi_model.'''
+        B = params[0]
+        Snl = params[1]
+
+        Pm = ((self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw)
+        if(self.model == 'galaxy'):
+            Pm = Pm * 1.
+        elif(self.model == 'pvoid'):       
+            Pm = Pm * (self.Pvoid / self.Pnw)
+        elif(self.model == 'parab'):
+            c = params[2]
+            Pm = Pm * (1 + c * self.k2)    
+        else:
+            print('ERROR: The model %s does not exist! Exiting the code.' %(self.model))
+            print('OPTIONS: galaxy, pvoid, parab')
+            sys.exit(1)
+
+        if(self.method == 'FFTlog'):
+            Pint = interp1d(np.log(self.k), np.log(Pm), kind='cubic')
+            Pkfn = lambda k: np.exp(Pint(np.log(k)))
+        elif (self.method == 'FFTlinlog'):
+            Pint = interp1d(np.log(self.k), self.k*Pm, kind='cubic')
+            Pkfn = lambda k: Pint(np.log(k))/k
+        elif (self.method == 'fast'):
+            Pm *= self.k2 * self.k * self.eka2
+            xim = np.zeros(self.nsbin)
+            if self.k_interp == True:
+                for i in range(self.nsbin):
+                    xim[i] = np.sum(Pm * self.j0[i,:]) * (np.log(self.k[1]) - np.log(self.k[0]))
+            else:
+                for i in range(self.nsbin):
+                    xim[i] = simps(Pm * self.j0[i,:], np.log(self.k))
+            return xim
+        else:
+            print('ERROR: The method %s does not exist! Exiting the code.' %(self.method))
+            print('OPTIONS: FFTlinlog, FFTlog')
+            sys.exit(1)
+
+        s0, xi0 = self.xicalc(Pkfn, self.sm[0])
+        Xint = interp1d(s0, xi0*s0**2, kind='cubic')
+        xi = Xint(self.sm) / self.sm**2
+        return self.sm, xi * B**2
             
     def xi_model_params(self):
         if(self.model == 'pvoid' or self.model == 'galaxy'):

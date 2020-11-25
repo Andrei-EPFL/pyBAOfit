@@ -1,18 +1,34 @@
+import os
+import sys
 import configparser
 import numpy as np
+import matplotlib.pyplot as pt
 
 class CovMat():
-    def __init__(self, config_file, input_mocks):
+    def __init__(self, config_file, args):
         config = configparser.ConfigParser()
         config.read(config_file)
 
         self.compute_cov = config["paths"].getboolean("compute_cov")
         self.save_cov = config["paths"].getboolean("save_cov")
         self.cov_file = config["paths"]["cov_file"]
-        self.input_mocks = input_mocks
-                
-        self.nmock, self.Rcov = self.get_cov()
+        
+        input_mocks = args.input_mocks
+        if input_mocks is None:
+            input_mocks = config["paths"]["input_mocks"]
 
+        min_s_index = args.min_s_index
+        if min_s_index is None:
+            min_s_index = config['params'].getint('min_s_index')
+
+        self.input_mocks = input_mocks
+        if not os.path.isfile(self.input_mocks):
+            print("ERROR: The file: " + self.input_mocks + " does not exist!")
+            sys.exit(1)
+
+        self.min_s_index = min_s_index
+        self.nmock, self.Rcov = self.get_cov()
+        
     def get_cov(self):
         '''Read/Compute the pre-processed covariance matrix.
         Return: [Nmock, Rcov], where Rcov is the upper triangular matrix from the
@@ -30,9 +46,11 @@ class CovMat():
             # Read 2PCF of mocks
             ximock = [None] * Nmock
             for i in range(Nmock):
-                ximock[i] = np.loadtxt(mocks[i], usecols=(1, ), unpack=True)
-            ximock = np.array(ximock)
+                temp = np.loadtxt(mocks[i], usecols=(1, ), unpack=True)
+                ximock[i] = temp[self.min_s_index: ]
 
+            ximock = np.array(ximock)
+            
             # Compute the mock matrix M (C = M^T . M)
             mean = np.mean(ximock, axis=0)
             ximock -= mean
