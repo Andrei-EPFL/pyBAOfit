@@ -53,6 +53,25 @@ def plot_chi2_alpha(inpath, endname, ax, color="red", label="label", plot=True):
 
     return alpha, chi2
 
+def plot_chi2_alpha_2(inpath, endname, ax, color="red", label="label", plot=True, n=1):
+    alpha, chi2, evi = np.loadtxt(inpath+"/DAT_alpha_chi2_500"+endname+".dat",usecols=(0,1,2), unpack=True)
+    chi2 = chi2/n
+    if plot == True:
+        ax[0].plot(alpha, chi2, color=color, marker='.', ls='', label=label)
+        ax[0].axvline(np.mean(alpha), color=color, ls="--")
+        ax[0].set_xlabel(r"$\alpha_\mathrm{best}$")
+        ax[0].set_ylabel(r"$\chi^2_\mathrm{best}/\nu$")
+        ax[0].legend()
+    
+        ax[1].plot(evi, chi2, color=color, marker='.', ls='', label=label)
+        ax[1].axvline(np.mean(evi), color=color, ls="--")
+        ax[1].axhline(np.mean(chi2), color=color, ls="--")
+        ax[1].set_xlabel(r"ln(ev)")
+        ax[1].set_ylabel(r"$\chi^2_\mathrm{best}/\nu$")
+        ax[1].legend()
+
+    return alpha, chi2
+
 def obtain_chi2alpha(inpath):
     files = glob.glob(inpath + "*_.txt")
     randnum = np.loadtxt("/home/astro/variu/phd/voids/randnum_500.txt", usecols=(0), unpack=True)
@@ -60,17 +79,24 @@ def obtain_chi2alpha(inpath):
     print(len(files))
     chi2_arr = np.zeros(len(files))
     alpha_arr = np.zeros(len(files))
+    evi_arr = np.zeros(len(files))
     
     for i, file_ in enumerate(files):
-        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".VOID.dat.dr.2pcf_.txt"
+        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".VOID.dat.2pcf_.txt"
         chi2_tmp, alpha_tmp = np.loadtxt(file_m, usecols=(1, 2), unpack=True)
+        
+        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".VOID.dat.2pcf_mystats.txt"
+        evi_tmp = np.loadtxt(file_m, usecols=(2), unpack=True)
         
         min_pos = chi2_tmp==np.min(chi2_tmp)
         
         chi2_arr[i] = chi2_tmp[min_pos]
         alpha_arr[i] = alpha_tmp[min_pos]
-       
-    np.savetxt(inpath + "/DAT_alpha_chi2_500.dat", np.array([alpha_arr, chi2_arr]).T)
+        evi_arr[i] = evi_tmp
+
+    np.savetxt(inpath + "/DAT_alpha_chi2_500.dat", np.array([alpha_arr, chi2_arr, evi_arr]).T)
+
+    
 
 def plot_1file_chi2alpha(infile, npar):
     chi2, alpha, B, Snl = np.loadtxt(infile, usecols=(1, 2, 3, 4), unpack=True)
@@ -143,7 +169,7 @@ def obtain_data(inpath, ax, label="label", color="red"):
     alpha = np.zeros(len(files))
     sigma = np.zeros(len(files))
     for i, file_ in enumerate(files):
-        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".dat.dr.2pcf_mystats.txt"
+        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".VOID.dat.2pcf_mystats.txt"
 
         alpha[i], sigma[i], _ = np.loadtxt(file_m, usecols=(0,1,2), unpack=True)
         #if(sigma[i]>0.015):
@@ -266,22 +292,42 @@ def plot_four_cases(inpath1, inpath2, inpath3, inpath4):
 
     fig.savefig("/home/astro/variu/temp_4.pdf")
 
+def plot_three_cases(inpath1, inpath2, inpath3):
+    ### Fig 1
+    fig0, ax0 = pt.subplots()
+    fig1, ax1 = pt.subplots()
+    alpha_500, chi2_500 = plot_chi2_alpha_2(inpath2, "", [ax0, ax1], color="magenta", label="Galaxy: 12 DOF", n=12)
+    alpha_2000, chi2_2000 = plot_chi2_alpha_2(inpath3, "", [ax0, ax1], color="green", label="Parabola: 11 DOF", n=11)
+    alpha_100, chi2_100 = plot_chi2_alpha_2(inpath1, "", [ax0, ax1], color="blue", label="Template: 12 DOF", n=12)
+    fig0.tight_layout()
+    fig0.savefig("/home/astro/variu/temp.png")
+    fig1.tight_layout()
+    fig1.savefig("/home/astro/variu/temp1.png")
 
 def main():
-    inpath1 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_100_temp_exte/"
-    inpath2 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_500_temp_exte/"
-    inpath3 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_2000_temp_short/"
-    inpath4 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_2000_temp_exte_filt/"
+    #inpath1 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_100_temp_exte/"
+    #inpath2 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_500_temp_exte/"
+    #inpath3 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_2000_temp_short/"
+    #inpath4 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G1024CIC_60_150_mocks_2000_temp_exte_filt/"
     
-    inpath5 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/parab_60_150_mocks/"
+    #inpath5 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/parab_60_150_mocks/"
     #inpath3 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/galaxy_60_150_fast_mocks/"
     #inpath4 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/void_G512CIC_60_150_mocks/"
-    inpath7 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf/16R/void_G1024CIC_60_150_mocks_2001_temp_short/"
+    #inpath7 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf/16R/void_G1024CIC_60_150_mocks_2001_temp_short/"
     
+    inpath1 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/G1024CIC_60_150_m_2000/"
+    inpath2 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/galaxy_60_150_m/"
+    inpath3 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/parab_60_150_m_FFT/"
+    
+
     #obtain_chi2alpha(inpath7)
-    
-    #plot_four_cases(inpath1, inpath2, inpath3, inpath4)
+    #obtain_chi2alpha(inpath1)
+    #obtain_chi2alpha(inpath2)
+    #obtain_chi2alpha(inpath3)
     #exit()
+    #plot_four_cases(inpath1, inpath2, inpath3, inpath4)
+    plot_three_cases(inpath1, inpath2, inpath3)
+    exit()
 
     #plot_1file_chi2alpha(inpath2 + "/BAOfit_CATALPTCICz0.466G960S1711891480.VOID.dat.2pcf_", 3)    
     #plot_1file_chi2alpha(inpath + "/BAOfit_CATALPTCICz0.466G960S527868848.VOID.dat.2pcf_.txt", 3)
@@ -291,9 +337,9 @@ def main():
 
     fig, ax = pt.subplots(1,3, figsize=(30,10))
     
-    #obtain_data(inpath7, ax, label="G1024CIC_2001", color="red")
-    obtain_data(inpath5, ax, label="parab", color="green")
-    #obtain_data(inpath6, ax, label="G1024CIC_2000filt", color="blue")
+    obtain_data(inpath2, ax, label="Galaxy", color="magenta")
+    obtain_data(inpath3, ax, label="Parabola", color="green")
+    obtain_data(inpath1, ax, label="Template", color="blue")
     
     fig.savefig("/home/astro/variu/temp_parab.pdf")
     exit()

@@ -116,8 +116,8 @@ def main():
     #print("test")
     #sys.exit()
     
-    #multinest_var.run_multinest()
-    #multinest_var.analyse_multinest()
+    multinest_var.run_multinest()
+    multinest_var.analyse_multinest()
     
 if __name__ == '__main__':
     main()
