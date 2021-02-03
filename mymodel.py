@@ -81,7 +81,10 @@ class XiModel():
         self.smin = config['params'].getfloat('smin')
         self.smax = config['params'].getfloat('smax')
         self.num_s_bin = config['params'].getint('num_s_bin')
-        self.damp_a = config['params'].getfloat('damp_a')
+        
+        self.damp_a = args.damp_a
+        if self.damp_a is None:
+            self.damp_a = config['params'].getfloat('damp_a')
         
         self.input_plin = config['paths']['input_plin']
         self.pnw_run = config['paths'].getboolean('pnw_run')

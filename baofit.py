@@ -29,6 +29,7 @@ def main():
     parser.add_argument("--fit_smin", type=float, help="min s range for fit (same)")
     parser.add_argument("--fit_smax", type=float, help="max s range for fit (same)")
     parser.add_argument("--min_s_index", type=int, help="min s index to be used from the data CF (same)")
+    parser.add_argument("--damp_a", type=float, help="the damping factor for the fast integration method")
 
     args = parser.parse_args()
 

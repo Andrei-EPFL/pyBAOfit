@@ -52,9 +52,9 @@ def plot_corner(samples, ofile):
   g.settings.lab_fontsize = 16
   #g.triangle_plot(samples, filled='True', legend_labels=['Parabola', 'Galaxy', 'Void', 'VoidGL', 'VoidGL2'], \
   #    line_args=[{'lw':2, 'color':'green'}, {'lw':2, 'color':'blue'}, {'lw':2, 'color':'red'}, {'lw':2, 'color':'orange'}, {'lw':2, 'color':'magenta'}], contour_colors=['green', 'blue', 'red', 'orange', 'magenta'])
-  g.triangle_plot(samples, filled='True', legend_labels=['Parabola', 'Galaxy', 'G2048L512', 'G1024CIC'], \
-      line_args=[{'lw':0.7, 'color':'green'}, {'lw':0.7, 'color':'magenta'}, {'lw':0.7, 'color':'orange'}, {'lw':0.7, 'color':'blue'}], contour_colors=['green','magenta', 'orange', 'blue'])
-#sample_par, sample_gal, sample_voiGL, sample_voiCIC, sample_voiCIC512
+  g.triangle_plot(samples, filled='True', legend_labels=['Parabola', 'G1024CIC', 'G1024CICB'], \
+      line_args=[{'lw':0.7, 'color':'orange'}, {'lw':0.7, 'color':'red'}, {'lw':0.7, 'color':'blue'}], contour_colors=['orange','red', 'blue'])
+  #sample_par, sample_gal, sample_voiGL, sample_voiCIC, sample_voiCIC512
   # Reset axis ticks for the c parameter
   ax = g.subplots[3,3]
   xmin, xmax = ax.get_xlim()
@@ -87,28 +87,18 @@ def plot_corner(samples, ofile):
 
 
 def main():
-  inpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/"
-  fileroot='BAOfit_voids_Box_z0.465600_16R.2pcf_'
-  #fileroot='BAOfit_avg_16R.2pcf_'
+  inpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/avg_fit/"
+  #fileroot='BAOfit_voids_Box_z0.465600_16R.2pcf_'
+  fileroot='BAOfit_avg_500_16R.2pcf_'
   
-  ofile = '/home/astro/variu/' + fileroot +'getdist_60_150.pdf'
-  
-  
-  sample_gal = my_sample(inpath + "/galaxy_60_150/" + fileroot, 3)
-  sample_par = my_sample(inpath + "/parab_60_150/" + fileroot, 4)
-  sample_voiGL = my_sample(inpath + "/voidtemplate_60_150_G2048L512_1000bins/" + fileroot, 3)
-  sample_voiCIC = my_sample(inpath + "/void_G1024CIC_60_150/" + fileroot, 3)
-  #sample_voiCIC512 = my_sample(inpath + "/void_G512CIC_60_150/" + fileroot, 3)
-  
-  # sample_gal = my_sample(inpath + "/galaxy_60_150_fast/" + fileroot, 3)
-  # sample_par = my_sample(inpath + "/parab_60_150/" + fileroot, 4)
-  # sample_voi = my_sample(inpath + "/voidtemplate_conv_60_150/" + fileroot, 3)
-  # sample_voi_GL = my_sample(inpath + "/voidtemplate_60_150_G2048L512_1000bins/" + fileroot, 3)
-  # sample_voi_GL2 = my_sample(inpath + "/voidtemplate_60_150_G2048L512_1000bins_2/" + fileroot, 3)
-  
-  #plot_corner([sample_par, sample_gal, sample_voi, sample_voi_GL, sample_voi_GL2], ofile)
-  #plot_corner([sample_par, sample_voi, sample_voi_GL2], ofile)
-  plot_corner([sample_par, sample_gal, sample_voiGL, sample_voiCIC], ofile)
+  range_list = ["50_150", "50_170"]
+  for range_ in range_list:
+
+    ofile = inpath + fileroot +range_+'_getdist_60_150.pdf'
+    sample_par = my_sample(inpath + "/parab_"+range_+"_fast/" + fileroot, 4)
+    sample_voiCIC = my_sample(inpath + "/G1024CIC_"+range_+"_2000/" + fileroot, 3)
+    sample_voiCICB = my_sample(inpath + "/G1024CIC_"+range_+"_B2000/" + fileroot, 3)
+    plot_corner([sample_par, sample_voiCIC, sample_voiCICB], ofile)
 
 if __name__== '__main__':
   if len(sys.argv) != 1 and len(sys.argv) != 2:
