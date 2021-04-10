@@ -224,6 +224,8 @@ class XiModel():
             Pm = Pm * 1.
         elif(self.model == 'pvoid'):       
             Pm = Pm * (self.Pvoid / self.Pnw)
+        elif(self.model == 'pvoid_exclusion'):       
+            Pm = self.Pvoid * np.exp(-0.5 * self.k2 * Snl**2)
         elif(self.model == 'parab'):
             c = params[2]
             Pm = Pm * (1 + c * self.k2)    
@@ -309,7 +311,7 @@ class XiModel():
         return self.sm, xi * B**2
             
     def xi_model_params(self):
-        if(self.model == 'pvoid' or self.model == 'galaxy'):
+        if(self.model == 'pvoid' or self.model == 'galaxy' or self.model == 'pvoid_exclusion'):
             print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl']
         if(self.model == 'parab'):

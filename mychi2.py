@@ -84,7 +84,7 @@ class Chi2Class():
         xi = fxim(self.xid.sd[imin:imax] * alpha)
 
         # Least square fitting of nuisance parameters
-        dxi = self.xid.xid[imin:imax] - xi * B**2
+        dxi = self.xid.xid[imin:imax] - xi * (B**2)
         poly = np.dot(self.M[:, imin:imax], dxi)
         
         a_poly = bwd_subst(self.A, poly)
@@ -107,7 +107,7 @@ class Chi2Class():
         xi = fxim(self.xid.sd[imin:imax] * alpha)
 
         # Least square fitting of nuisance parameters
-        dxi = self.xid.xid[imin:imax] - xi * B**2
+        dxi = self.xid.xid[imin:imax] - xi * (B**2)
         poly = np.dot(self.M[:, imin:imax], dxi)
         a_poly = bwd_subst(self.A, poly)
         

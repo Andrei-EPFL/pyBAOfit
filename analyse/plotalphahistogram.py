@@ -38,44 +38,22 @@ def plot_errorbar(path, leglabel, ax, col, line, mode="cf", bias=1, plotBOOL=Tru
         print("Error: you have to choose between cf or pk as modes")
     return x, y_avg, y_std
 
-def plot_chi2_alpha(inpath, endname, ax, color="red", label="label", plot=True):
-    alpha, chi2 = np.loadtxt(inpath+"/DAT_alpha_chi2_500"+endname+".dat",usecols=(0,1), unpack=True)
-    print(np.min(alpha), np.max(alpha))
-    
-    range_ = alpha>0.1
-    alpha = alpha[range_]
-    chi2 = chi2[range_]
-    bins = np.linspace(0.75, 1.25, 51)
-    print(bins)
-    if plot == True:
-        ax[0].plot(alpha, chi2, color=color, marker='.', ls='', label=label+": mean= {}; std={}".format(np.mean(alpha), np.std(alpha)))
-        ax[0].set_xlabel(r"$\alpha_\mathrm{best}$")
-        ax[0].set_ylabel(r"$\chi^2_\mathrm{best}$")
-        ax[0].legend()
-        
-        #bins = np.linspace(0.8, 1.2, 161)
-        ax[1].hist(alpha, bins=bins, alpha=1, histtype="step", color=color, label=label)#+": mean= {}; std={}".format(np.mean(alpha), np.std(alpha)))#, fill=False, edgecolor=color)
-        ax[1].axvline(np.mean(alpha), color=color, ls=":")
-        ax[1].axvline(1, color="grey", ls="--")
-        
-        #ax[1].set_xlim([0.96, 1.04])
-        ax[1].set_xlabel(r"$\alpha_\mathrm{best}$")
-        ax[1].set_ylabel(r"counts")
-        ax[1].legend(loc="upper left")
-
-    return alpha, chi2
-
 def plot_chi2_alpha_evi(inpath, endname, ax, color="red", label="label", plot=True, n=1):
     alpha, chi2, evi = np.loadtxt(inpath+"/DAT_alpha_chi2_500"+endname+".dat",usecols=(0,1,2), unpack=True)
+    print("Best alpha", np.min(alpha), np.max(alpha))
+    
     chi2 = chi2/n
 
     range_ = alpha>0.1
     chi2 = chi2[range_]
     evi = evi[range_]
     alpha = alpha[range_]
+    #bins = np.linspace(0.75, 1.25, 51)
+    bins = np.linspace(0.93, 1.07, 57)
+    #print(bins)
 
     if plot == True:
-        ax[0].plot(alpha, chi2, color=color, marker='.', ls='', label=label)
+        ax[0].plot(alpha, chi2, color=color, marker='.', ls='', label=label+": mean= {}; std={}".format(np.mean(alpha), np.std(alpha)))
         ax[0].axvline(np.mean(alpha), color=color, ls="--")
         ax[0].set_xlabel(r"$\alpha_\mathrm{best}$")
         ax[0].set_ylabel(r"$\chi^2_\mathrm{best}/\nu$")
@@ -88,46 +66,70 @@ def plot_chi2_alpha_evi(inpath, endname, ax, color="red", label="label", plot=Tr
         ax[1].set_ylabel(r"$\chi^2_\mathrm{best}/\nu$")
         ax[1].legend()
 
+        #bins = np.linspace(0.8, 1.2, 161)
+        ax[2].hist(alpha, bins=bins, alpha=1, histtype="step", color=color, label=label)#+": mean= {}; std={}".format(np.mean(alpha), np.std(alpha)))#, fill=False, edgecolor=color)
+        ax[2].axvline(np.mean(alpha), color=color, ls=":")
+        ax[2].axvline(1, color="grey", ls="--")
+        
+        #ax[2].set_xlim([0.96, 1.04])
+        ax[2].set_xlabel(r"$\alpha_\mathrm{best}$")
+        ax[2].set_ylabel(r"counts")
+        ax[2].legend(loc="upper left")
+
     return alpha, chi2
 
-def plot_data_mystats(inpath, ax, label="label", color="red"):
+def plot_data_mystats(inpath, ax, label="label", color="red", endcffile=".dat.2pcf"):
     files = glob.glob(inpath + "*mystats*")
     randnum = np.loadtxt("/home/astro/variu/phd/voids/randnum_500.txt", usecols=(0), unpack=True)
 
     print(len(files))
     alpha = np.zeros(len(files))
+    alpham = np.zeros(len(files))
     sigma = np.zeros(len(files))
     for i, file_ in enumerate(files):
-        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".dat.2pcf_mystats.txt"
+        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + endcffile + "_mystats.txt"
 
-        alpha[i], sigma[i], _ = np.loadtxt(file_m, usecols=(0,1,2), unpack=True)
+        alpha[i], sigma[i], alpham[i]= np.loadtxt(file_m, usecols=(0, 1,4), unpack=True)
         #if(sigma[i]>0.015):
         #    print(file_)
         #    plot_best(file_, inpath, label)
     
-    ax[0].plot(alpha, sigma, ls="", marker=".", label=label, color=color)
+    print("Mean alpha: ", np.min(alpha), np.max(alpha))
+    ax[0][0].hist(alpha, bins=np.linspace(0.97, 1.03, 61), histtype="step", label=label+": mean= {}; std={}".format(np.mean(alpha), np.std(alpha)), color=color)
+    #ax[0].plot(alpha, sigma, ls="", marker=".", label=label, color=color)
     #ax[0].set_ylim([0.0045, 0.013])
-    ax[0].set_xlabel(r"$\alpha$")
-    ax[0].set_ylabel(r"$\sigma_{\alpha}$")
-    ax[0].legend()
+    ax[0][0].set_xlabel(r"$\alpha_{avg}$")
+    #ax[0].set_ylabel(r"$\sigma_{\alpha}$")
+    #ax[0].set_yscale("log")
+    ax[0][0].legend()
     
-    print(np.min(sigma), np.max(sigma))
-    bins = np.linspace(0.007, 0.197, 96)
-    print(bins)
-    ax[1].hist(sigma, alpha=1, histtype="step", bins=bins, label=label+": mean= {}; std={}".format(np.mean(sigma), np.std(sigma)), color=color)#, bins=bins)
-    ax[1].set_xlabel(r"$\sigma_{\alpha}$")
-    ax[1].set_ylabel("counts")
-    ax[1].legend()
+    print("Sigma: ", np.min(sigma), np.max(sigma))
+    #bins = np.linspace(0.007, 0.197, 96)
+    bins = np.linspace(0.0025, 0.02, 51)
+    #print(bins)
+    ax[1][0].hist(sigma, alpha=1, histtype="step", bins=bins, label=label+": mean= {}; std={}".format(np.mean(sigma), np.std(sigma)), color=color)#, bins=bins)
+    ax[1][0].set_xlabel(r"$\sigma_{\alpha}$")
+    ax[1][0].set_ylabel("counts")
+    ax[1][0].legend()
 
-    bins = np.linspace(0.75, 1.25, 51)
-    ax[2].hist(alpha, alpha=1,histtype="step", bins=bins, label=label+": mean= {}; std={}".format(np.mean(alpha), np.std(alpha)), color=color)
-    ax[2].set_xlabel(r"$\alpha$")
-    ax[2].set_ylabel("counts")
-    ax[2].legend()
+    print("Med alpha: ", np.min(alpham), np.max(alpham))
+    #bins = np.linspace(0.75, 1.25, 51)
+    bins = np.linspace(0.97, 1.03, 61)
+    #print(bins)
+    ax[0][1].hist(alpham, alpha=1,histtype="step", bins=bins, label=label+": mean= {}; std={}".format(np.mean(alpham), np.std(alpham)), color=color)
+    ax[0][1].set_xlabel(r"$\alpha_{med}$")
+    ax[0][1].set_ylabel("counts")
+    ax[0][1].legend()
+
+    ax[1][1].scatter(alpha, alpham, color=color, label=label)
+    ax[1][1].plot(np.linspace(np.min(alpha), np.max(alpha), 3), np.linspace(np.min(alpha), np.max(alpha), 3), color="grey", ls="--")
+    ax[1][1].set_xlabel(r"$\alpha_{avg}$")
+    ax[1][1].set_ylabel(r"$\alpha_{med}$")
+
 
     return alpha, sigma
 
-def obtain_chi2_alpha_evi(inpath):
+def obtain_chi2_alpha_evi(inpath, endcffile=".dat.2pcf"):
     files = glob.glob(inpath + "*_.txt")
     randnum = np.loadtxt("/home/astro/variu/phd/voids/randnum_500.txt", usecols=(0), unpack=True)
 
@@ -137,17 +139,17 @@ def obtain_chi2_alpha_evi(inpath):
     evi_arr = np.zeros(len(files))
     
     for i, file_ in enumerate(files):
-        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".dat.2pcf_.txt"
+        file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + endcffile + "_.txt"
 
         if os.path.isfile(file_m):
             chi2_tmp, alpha_tmp = np.loadtxt(file_m, usecols=(1, 2), unpack=True)
             
-            file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + ".dat.2pcf_mystats.txt"
+            file_m = inpath + "/BAOfit_CATALPTCICz0.466G960S" + str(int(randnum[i])) + endcffile + "_mystats.txt"
             if os.path.isfile(file_m):
             
                 evi_tmp = np.loadtxt(file_m, usecols=(2), unpack=True)
                 
-                min_pos = chi2_tmp==np.min(chi2_tmp)
+                min_pos = np.argmin(chi2_tmp)
                 
                 chi2_arr[i] = chi2_tmp[min_pos]
                 alpha_arr[i] = alpha_tmp[min_pos]
@@ -166,7 +168,7 @@ def provide_bestfit_alpha(path_fit, filename_cf):
     sb, cfb = np.loadtxt(best_file, usecols=(0, 1), unpack=True)
 
     chi2_arr, alpha_arr = np.loadtxt(chi2_file, usecols=(1, 2), unpack=True)
-    min_pos = chi2_arr==np.min(chi2_arr)
+    min_pos = np.argmin(chi2_arr)
 
     alpha, sigma, evi = np.loadtxt(mystats_f, usecols=(0,1,2), unpack=True)
 
@@ -179,9 +181,9 @@ def plot_1file_chi2alpha(infile, npar):
     alphalim2 = np.logical_and(alpha<1.05, alpha>1.027)
     alphalim3 = np.logical_and(alpha<1.027, alpha>0.99)
 
-    pos1 = chi2 == np.min(chi2[alphalim1])
-    pos2 = chi2 == np.min(chi2[alphalim2])
-    pos3 = chi2 == np.min(chi2[alphalim3])
+    pos1 = np.argmin(chi2[alphalim1])
+    pos2 = np.argmin(chi2[alphalim2])
+    pos3 = np.argmin(chi2[alphalim3])
 
     print(np.min(chi2))
     print(np.min(chi2[alphalim1]), alpha[pos1])
@@ -199,20 +201,20 @@ def plot_1file_chi2alpha(infile, npar):
     pt.savefig("./temporaryalpha.pdf")
        
 def plot_best(filepath_cf, filename_cf, pdf, std):
-    path_fit = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/"    
+    path_fit = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/"    
     s_data, cf_data = np.loadtxt(filepath_cf + filename_cf, usecols=(0,1), unpack=True)
 
-    sbG, cfbG, chi2G, alpha_bG, alpha_G, sigma_G, evi_G = provide_bestfit_alpha(path_fit + "/galaxy_60_150_m/", filename_cf)
-    sbP, cfbP, chi2P, alpha_bP, alpha_P, sigma_P, evi_P = provide_bestfit_alpha(path_fit + "/parab_60_150_m_fast/", filename_cf)
-    sbT, cfbT, chi2T, alpha_bT, alpha_T, sigma_T, evi_T = provide_bestfit_alpha(path_fit + "/G1024CIC_60_150_m_2000/", filename_cf)
-    if alpha_bT > 1.05:
+    sbG, cfbG, chi2G, alpha_bG, alpha_G, sigma_G, evi_G = provide_bestfit_alpha(path_fit + "/stitched_G2048_50_G512_2000/", filename_cf)
+    sbP, cfbP, chi2P, alpha_bP, alpha_P, sigma_P, evi_P = provide_bestfit_alpha(path_fit + "/sm_stitched_G2048_50_G512_2000/", filename_cf)
+    sbT, cfbT, chi2T, alpha_bT, alpha_T, sigma_T, evi_T = provide_bestfit_alpha(path_fit + "/G1024CIC_60_150_m_2000F/", filename_cf)
+    if alpha_bT > 0.7:
         fig, ax = pt.subplots(figsize=(10, 10))
         
         ax.errorbar(s_data, cf_data*s_data**2, yerr=s_data*s_data*std, label="data: "+ filename_cf, color="k")
         
-        ax.plot(sbG, sbG*sbG*cfbG, label="Galaxy: " + r"$\chi2$=%.4g; $\alpha_\mathrm{best}$=%.4g; $\alpha$=%.4g; $\sigma$=%.4g; ln(ev)=%.4g" % (chi2G, alpha_bG, alpha_G, sigma_G, evi_G), ls="--", color="magenta")
-        ax.plot(sbP, sbP*sbP*cfbP, label="Parabola: " + r"$\chi2$=%.4g; $\alpha_\mathrm{best}$=%.4g; $\alpha$=%.4g; $\sigma$=%.4g; ln(ev)=%.4g" % (chi2P, alpha_bP, alpha_P, sigma_P, evi_P), ls="--", color="green")
-        ax.plot(sbT, sbT*sbT*cfbT, label="Template: " + r"$\chi2$=%.4g; $\alpha_\mathrm{best}$=%.4g; $\alpha$=%.4g; $\sigma$=%.4g; ln(ev)=%.4g" % (chi2T, alpha_bT, alpha_T, sigma_T, evi_T), ls="--", color="blue")
+        ax.plot(sbG, sbG*sbG*cfbG, label="Template 500 FFT: " + r"$\chi2$=%.4g; $\alpha_\mathrm{best}$=%.4g; $\alpha$=%.4g; $\sigma$=%.4g; ln(ev)=%.4g" % (chi2G, alpha_bG, alpha_G, sigma_G, evi_G), ls="--", color="magenta")
+        ax.plot(sbP, sbP*sbP*cfbP, label="Template 500 F: " + r"$\chi2$=%.4g; $\alpha_\mathrm{best}$=%.4g; $\alpha$=%.4g; $\sigma$=%.4g; ln(ev)=%.4g" % (chi2P, alpha_bP, alpha_P, sigma_P, evi_P), ls="--", color="green")
+        ax.plot(sbT, sbT*sbT*cfbT, label="Template 2000F: " + r"$\chi2$=%.4g; $\alpha_\mathrm{best}$=%.4g; $\alpha$=%.4g; $\sigma$=%.4g; ln(ev)=%.4g" % (chi2T, alpha_bT, alpha_T, sigma_T, evi_T), ls="--", color="blue")
         
         ax.legend()
 
@@ -340,169 +342,69 @@ def plot_all_comb(ax, alpha1=None, alpha2=None, alpha3=None, label1="label1", la
     ax[1].set_xlabel(label3, fontsize=16)
 
     if mode == 0:
-        ax[1].set_xlim([0.79, 1.21])
-        ax[1].set_ylim([0.79, 1.21])
-        ax[0].set_ylim([0.79, 1.21])
-        ax[0].set_xlim([0.79, 1.21])
+        # ax[1].set_xlim([0.79, 1.21])
+        # ax[1].set_ylim([0.79, 1.21])
+        # ax[0].set_ylim([0.79, 1.21])
+        # ax[0].set_xlim([0.79, 1.21])
+
+        ax[1].set_xlim([0.93, 1.07])
+        ax[1].set_ylim([0.93, 1.07])
+        ax[0].set_ylim([0.93, 1.07])
+        ax[0].set_xlim([0.93, 1.07])
 
 def plot_alphabest_alpha(ax, alphabest=None, alpha=None, labelbest="label1", label="label2"):
     ax.plot(alphabest, alpha, marker=".", ls="")
     ax.plot(np.linspace(0.8, 1.2, 10), np.linspace(0.8, 1.2, 10), color="grey", ls="--")
     ax.set_xlabel(labelbest, fontsize=16)
     ax.set_ylabel(label, fontsize=16)
+    ax.set_ylim([0.93, 1.07])
+    ax.set_xlim([0.93, 1.07])
     
-def plot_three_cases(inpath1, inpath2, inpath3):
-    ### Fig 1
+def plot_three_cases(inpath1, inpath2, inpath3, dict_labels, endcffile=".dat.2pcf"):
     fig0, ax0 = pt.subplots()
     fig1, ax1 = pt.subplots()
-    fig2, ax2 = pt.subplots(1, 3, figsize=(30,10))
+    fig2, ax2 = pt.subplots()
+
     fig3, ax3 = pt.subplots(2, 2, figsize=(20,20), sharex=True, gridspec_kw={"hspace":0})
     fig4, ax4 = pt.subplots(1, 2, figsize=(20,10), sharex=True, sharey=True)
     fig5, ax5 = pt.subplots(1, 3, figsize=(30,10))
-    fig6, ax6 = pt.subplots()
-    fig7, ax7 = pt.subplots()
-    #alpha_500, chi2_500 = plot_chi2_alpha_evi(inpath1, "", [ax0, ax1], color="magenta", label="Galaxy: 12 DOF", n=12)
-    #alpha_2000, chi2_2000 = plot_chi2_alpha_evi(inpath2, "", [ax0, ax1], color="green", label="Parabola: 11 DOF", n=11)
-    #alpha_100, chi2_100 = plot_chi2_alpha_evi(inpath3, "", [ax0, ax1], color="blue", label="Template: 12 DOF", n=12)
+    fig6, ax6 = pt.subplots(2, 2, figsize=(20,20))
 
-    alpha_bG, _ = plot_chi2_alpha(inpath1, "", [ax0, ax1], color="magenta", label="Galaxy: 12 DOF")
-    plot_chi2_alpha_evi(inpath1, "", [ax6, ax7], color="magenta", label="Galaxy: 12 DOF")
-    alpha_aG, sigma_G = plot_data_mystats(inpath1, ax2, label="Galaxy", color="magenta")
+    alpha_b1, _ = plot_chi2_alpha_evi(inpath1, "", [ax0, ax1, ax2], color="magenta", label=dict_labels['label1'])
+    alpha_a1, sigma_1 = plot_data_mystats(inpath1, ax6, label=dict_labels['label1'], color="magenta", endcffile=endcffile)
 
-    alpha_bP, _ = plot_chi2_alpha(inpath2, "", [ax0, ax1], color="green", label="Parabola: 11 DOF")
-    plot_chi2_alpha_evi(inpath2, "", [ax6, ax7], color="green", label="Parabola: 11 DOF")
-    alpha_aP, sigma_P = plot_data_mystats(inpath2, ax2, label="Parabola", color="green")
-    
-    alpha_bT, _ = plot_chi2_alpha(inpath3, "", [ax0, ax1], color="blue", label="Template: 12 DOF")
-    plot_chi2_alpha_evi(inpath3, "", [ax6, ax7], color="blue", label="Template: 12 DOF")
-    alpha_aT, sigma_T = plot_data_mystats(inpath3, ax2, label="Template", color="blue")
+    alpha_b2, _ = plot_chi2_alpha_evi(inpath2, "", [ax0, ax1, ax2], color="green", label=dict_labels['label2'])
+    alpha_a2, sigma_2 = plot_data_mystats(inpath2, ax6, label=dict_labels['label2'], color="green", endcffile=endcffile)
 
-    plot_all_comb([ax3[0][0],ax3[1][0]], alpha1=alpha_bG, alpha2=alpha_bP, alpha3=alpha_bT, label1=r"$\alpha_\mathrm{best, GAL}$", label2=r"$\alpha_\mathrm{best, PAR}$", label3=r"$\alpha_\mathrm{best, TEM}$")
-    plot_all_comb([ax3[0][1],ax3[1][1]], alpha1=alpha_aG, alpha2=alpha_aP, alpha3=alpha_aT, label1=r"$\alpha_\mathrm{GAL}$", label2=r"$\alpha_\mathrm{PAR}$", label3=r"$\alpha_\mathrm{TEM}$")
-    plot_all_comb(ax4, alpha1=sigma_G, alpha2=sigma_P, alpha3=sigma_T, label1=r"$\sigma_\mathrm{GAL}$", label2=r"$\sigma_\mathrm{PAR}$", label3=r"$\sigma_\mathrm{TEM}$", mode=1)
+    alpha_b3, _ = plot_chi2_alpha_evi(inpath3, "", [ax0, ax1, ax2], color="blue", label=dict_labels['label3'])
+    alpha_a3, sigma_3 = plot_data_mystats(inpath3, ax6, label=dict_labels['label3'], color="blue", endcffile=endcffile)
 
-    plot_alphabest_alpha(ax5[0], alphabest=alpha_bG, alpha=alpha_aG, labelbest=r"$\alpha_\mathrm{best, GAL}$", label=r"$\alpha_\mathrm{GAL}$")
-    plot_alphabest_alpha(ax5[1], alphabest=alpha_bP, alpha=alpha_aP, labelbest=r"$\alpha_\mathrm{best, PAR}$", label=r"$\alpha_\mathrm{PAR}$")
-    plot_alphabest_alpha(ax5[2], alphabest=alpha_bT, alpha=alpha_aT, labelbest=r"$\alpha_\mathrm{best, TEM}$", label=r"$\alpha_\mathrm{TEM}$")
+    plot_all_comb([ax3[0][0],ax3[1][0]], alpha1=alpha_b1, alpha2=alpha_b2, alpha3=alpha_b3, label1=dict_labels['alpha1best'], label2=dict_labels['alpha2best'], label3=dict_labels['alpha3best'])
+    plot_all_comb([ax3[0][1],ax3[1][1]], alpha1=alpha_a1, alpha2=alpha_a2, alpha3=alpha_a3, label1=dict_labels['alpha1'], label2=dict_labels['alpha2'], label3=dict_labels['alpha3'])
+    plot_all_comb(ax4, alpha1=sigma_1, alpha2=sigma_2, alpha3=sigma_3, label1=dict_labels['sigma1'], label2=dict_labels['sigma2'], label3=dict_labels['sigma3'], mode=1)
+
+    plot_alphabest_alpha(ax5[0], alphabest=alpha_b1, alpha=alpha_a1, labelbest=dict_labels['alpha1best'], label=dict_labels['alpha1'])
+    plot_alphabest_alpha(ax5[1], alphabest=alpha_b2, alpha=alpha_a2, labelbest=dict_labels['alpha2best'], label=dict_labels['alpha2'])
+    plot_alphabest_alpha(ax5[2], alphabest=alpha_b3, alpha=alpha_a3, labelbest=dict_labels['alpha3best'], label=dict_labels['alpha3'])
 
     fig0.tight_layout()
-    fig0.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp4.png")
+    fig0.savefig(dict_labels['filename']+"temp1.png")
     fig1.tight_layout()
-    fig1.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp5.png")
+    fig1.savefig(dict_labels['filename']+"temp2.png")
     fig2.tight_layout()
-    fig2.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp6.png")
+    fig2.savefig(dict_labels['filename']+"temp3.png")
     fig3.tight_layout()
-    fig3.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp7.png")
+    fig3.savefig(dict_labels['filename']+"temp4.png")
     fig4.tight_layout()
-    fig4.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp8.png")
+    fig4.savefig(dict_labels['filename']+"temp5.png")
     fig5.tight_layout()
-    fig5.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp9.png")
+    fig5.savefig(dict_labels['filename']+"temp6.png")
     fig6.tight_layout()
-    fig6.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp10.png")
-    fig7.tight_layout()
-    fig7.savefig("/home/astro/variu/GAL_PAR2_TEMn_temp11.png")
-
-def plot_three_cases_2(inpath1, inpath2, inpath3):
-    ### Fig 1
-    fig0, ax0 = pt.subplots()
-    fig1, ax1 = pt.subplots()
-    fig2, ax2 = pt.subplots(1, 3, figsize=(30,10))
-    fig3, ax3 = pt.subplots(2, 2, figsize=(20,20), sharex=True, gridspec_kw={"hspace":0})
-    fig4, ax4 = pt.subplots(1, 2, figsize=(20,10), sharex=True, sharey=True)
-    fig5, ax5 = pt.subplots(1, 3, figsize=(30,10))
-    fig6, ax6 = pt.subplots()
-    fig7, ax7 = pt.subplots()
+    fig6.savefig(dict_labels['filename']+"temp7.png")
     
-    alpha_bG, _ = plot_chi2_alpha(inpath1, "", [ax0, ax1], color="magenta", label="Template old: 12 DOF")
-    plot_chi2_alpha_evi(inpath1, "", [ax6, ax7], color="magenta", label="Template old: 12 DOF")
-    alpha_aG, sigma_G = plot_data_mystats(inpath1, ax2, label="Template old", color="magenta")
-
-    alpha_bP, _ = plot_chi2_alpha(inpath2, "", [ax0, ax1], color="green", label="Template Box: 12 DOF")
-    plot_chi2_alpha_evi(inpath2, "", [ax6, ax7], color="green", label="Template Box: 12 DOF")
-    alpha_aP, sigma_P = plot_data_mystats(inpath2, ax2, label="Template Box", color="green")
-    
-    alpha_bT, _ = plot_chi2_alpha(inpath3, "", [ax0, ax1], color="blue", label="Template new: 12 DOF")
-    plot_chi2_alpha_evi(inpath3, "", [ax6, ax7], color="blue", label="Template new: 12 DOF")
-    alpha_aT, sigma_T = plot_data_mystats(inpath3, ax2, label="Template new", color="blue")
-
-    plot_all_comb([ax3[0][0],ax3[1][0]], alpha1=alpha_bG, alpha2=alpha_bP, alpha3=alpha_bT, label1=r"$\alpha_\mathrm{best, OLD}$", label2=r"$\alpha_\mathrm{best, BOX}$", label3=r"$\alpha_\mathrm{best, NEW}$")
-    plot_all_comb([ax3[0][1],ax3[1][1]], alpha1=alpha_aG, alpha2=alpha_aP, alpha3=alpha_aT, label1=r"$\alpha_\mathrm{OLD}$", label2=r"$\alpha_\mathrm{BOX}$", label3=r"$\alpha_\mathrm{NEW}$")
-    plot_all_comb(ax4, alpha1=sigma_G, alpha2=sigma_P, alpha3=sigma_T, label1=r"$\sigma_\mathrm{OLD}$", label2=r"$\sigma_\mathrm{BOX}$", label3=r"$\sigma_\mathrm{NEW}$", mode=1)
-
-    plot_alphabest_alpha(ax5[0], alphabest=alpha_bG, alpha=alpha_aG, labelbest=r"$\alpha_\mathrm{best, OLD}$", label=r"$\alpha_\mathrm{OLD}$")
-    plot_alphabest_alpha(ax5[1], alphabest=alpha_bP, alpha=alpha_aP, labelbest=r"$\alpha_\mathrm{best, BOX}$", label=r"$\alpha_\mathrm{BOX}$")
-    plot_alphabest_alpha(ax5[2], alphabest=alpha_bT, alpha=alpha_aT, labelbest=r"$\alpha_\mathrm{best, NEW}$", label=r"$\alpha_\mathrm{NEW}$")
-
-    fig0.tight_layout()
-    fig0.savefig("/home/astro/variu/OLD_BOX_NEW_temp4.png")
-    fig1.tight_layout()
-    fig1.savefig("/home/astro/variu/OLD_BOX_NEW_temp5.png")
-    fig2.tight_layout()
-    fig2.savefig("/home/astro/variu/OLD_BOX_NEW_temp6.png")
-    fig3.tight_layout()
-    fig3.savefig("/home/astro/variu/OLD_BOX_NEW_temp7.png")
-    fig4.tight_layout()
-    fig4.savefig("/home/astro/variu/OLD_BOX_NEW_temp8.png")
-    fig5.tight_layout()
-    fig5.savefig("/home/astro/variu/OLD_BOX_NEW_temp9.png")
-    fig6.tight_layout()
-    fig6.savefig("/home/astro/variu/OLD_BOX_NEW_temp10.png")
-    fig7.tight_layout()
-    fig7.savefig("/home/astro/variu/OLD_BOX_NEW_temp11.png")
-
-def plot_three_cases_3(inpath1, inpath2, inpath3):
-    ### Fig 1
-    fig0, ax0 = pt.subplots()
-    fig1, ax1 = pt.subplots()
-    fig2, ax2 = pt.subplots(1, 3, figsize=(30,10))
-    fig3, ax3 = pt.subplots(2, 2, figsize=(20,20), sharex=True, gridspec_kw={"hspace":0})
-    fig4, ax4 = pt.subplots(1, 2, figsize=(20,10), sharex=True, sharey=True)
-    fig5, ax5 = pt.subplots(1, 3, figsize=(30,10))
-    fig6, ax6 = pt.subplots()
-    fig7, ax7 = pt.subplots()
-    
-    alpha_bG, _ = plot_chi2_alpha(inpath1, "", [ax0, ax1], color="magenta", label="Galaxy: 12 DOF")
-    plot_chi2_alpha_evi(inpath1, "", [ax6, ax7], color="magenta", label="Galaxy: 12 DOF")
-    alpha_aG, sigma_G = plot_data_mystats(inpath1, ax2, label="Galaxy", color="magenta")
-
-    alpha_bP, _ = plot_chi2_alpha(inpath2, "", [ax0, ax1], color="green", label="Parabola: 11 DOF")
-    plot_chi2_alpha_evi(inpath2, "", [ax6, ax7], color="green", label="Parabola: 11 DOF")
-    alpha_aP, sigma_P = plot_data_mystats(inpath2, ax2, label="Parabola", color="green")
-    
-    alpha_bT, _ = plot_chi2_alpha(inpath3, "", [ax0, ax1], color="blue", label="Parabola 2: 11 DOF")
-    plot_chi2_alpha_evi(inpath3, "", [ax6, ax7], color="blue", label="Parabola 2: 11 DOF")
-    alpha_aT, sigma_T = plot_data_mystats(inpath3, ax2, label="Parabola 2", color="blue")
-
-    plot_all_comb([ax3[0][0],ax3[1][0]], alpha1=alpha_bG, alpha2=alpha_bP, alpha3=alpha_bT, label1=r"$\alpha_\mathrm{best, GAL}$", label2=r"$\alpha_\mathrm{best, PAR}$", label3=r"$\alpha_\mathrm{best, PAR2}$")
-    plot_all_comb([ax3[0][1],ax3[1][1]], alpha1=alpha_aG, alpha2=alpha_aP, alpha3=alpha_aT, label1=r"$\alpha_\mathrm{GAL}$", label2=r"$\alpha_\mathrm{PAR}$", label3=r"$\alpha_\mathrm{PAR2}$")
-    plot_all_comb(ax4, alpha1=sigma_G, alpha2=sigma_P, alpha3=sigma_T, label1=r"$\sigma_\mathrm{GAL}$", label2=r"$\sigma_\mathrm{PAR}$", label3=r"$\sigma_\mathrm{PAR2}$", mode=1)
-
-    plot_alphabest_alpha(ax5[0], alphabest=alpha_bG, alpha=alpha_aG, labelbest=r"$\alpha_\mathrm{best, GAL}$", label=r"$\alpha_\mathrm{GAL}$")
-    plot_alphabest_alpha(ax5[1], alphabest=alpha_bP, alpha=alpha_aP, labelbest=r"$\alpha_\mathrm{best, PAR}$", label=r"$\alpha_\mathrm{PAR}$")
-    plot_alphabest_alpha(ax5[2], alphabest=alpha_bT, alpha=alpha_aT, labelbest=r"$\alpha_\mathrm{best, PAR2}$", label=r"$\alpha_\mathrm{PAR2}$")
-
-    fig0.tight_layout()
-    fig0.savefig("/home/astro/variu/GAL_PAR_PAR2_temp4.png")
-    fig1.tight_layout()
-    fig1.savefig("/home/astro/variu/GAL_PAR_PAR2_temp5.png")
-    fig2.tight_layout()
-    fig2.savefig("/home/astro/variu/GAL_PAR_PAR2_temp6.png")
-    fig3.tight_layout()
-    fig3.savefig("/home/astro/variu/GAL_PAR_PAR2_temp7.png")
-    fig4.tight_layout()
-    fig4.savefig("/home/astro/variu/GAL_PAR_PAR2_temp8.png")
-    fig5.tight_layout()
-    fig5.savefig("/home/astro/variu/GAL_PAR_PAR2_temp9.png")
-    fig6.tight_layout()
-    fig6.savefig("/home/astro/variu/GAL_PAR_PAR2_temp10.png")
-    fig7.tight_layout()
-    fig7.savefig("/home/astro/variu/GAL_PAR_PAR2_temp11.png")
-
-
-
 def plot_all_bestfit():
-    pp = PdfPages('/home/astro/variu/bestfit_alpha_1.05.pdf')
-    filepath_cf = "/scratch/variu/clustering/patchy_cmass_subset/lightcone_box1/real/vv2pcf/16R/xi/"
+    pp = PdfPages('/home/astro/variu/bestfit_alpha.pdf')
+    filepath_cf = "/scratch/variu/clustering/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/"
     files = glob.glob(filepath_cf + "/CA*2pcf")
     s, avg, std = plot_errorbar(filepath_cf + "/CA*2pcf", "label", None, "grey", "-", plotBOOL=False)
 
@@ -528,9 +430,25 @@ def main():
     ###
 
     inpath1 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/galaxy_60_150_m/"
-    inpath2 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/parab_60_150_m_FFT/"
+    inpath2 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/parab_60_150_m_fast/"
     inpath3 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/G1024CIC_60_150_m_2000/"
+
+    inpath20 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/G1024CIC_60_150_m_2000E/"
+    inpath21 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/G1024CIC_60_150_m_2000F/"
+    inpath22 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/G1024CIC_60_150_m_500/"
+    inpath23 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/G1024CIC_60_150_m_500F/"
+    inpath24 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/G1024CIC_60_150_m_2000_old/"
     
+    inpath25 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf/galaxy_60_150_m/"
+    inpath26 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf/parab_60_150_m_fast2F/"
+    inpath27 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf/G1024CIC_60_150_m_2001F/"
+
+    inpath30 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/stitched_subvolumes/"
+    inpath31 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/lin_sav_gol_71_5_stitched_subvolumes/"
+
+    inpath32 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/stitched_G2048_50_G512_2000/"
+    inpath33 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/sm_stitched_G2048_50_G512_2000/"
+
     inpath4 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/galaxy_60_150_m/"
     inpath5 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/parab_60_150_m_fast/"
     inpath6 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/parab_60_150_m_fast2/"
@@ -538,14 +456,137 @@ def main():
     inpath8 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000/"
     inpath9 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_B2000/"
     
-    #plot_all_bestfit()
-
-    #obtain_chi2_alpha_evi(inpath7)
-    #plot_three_cases(inpath1, inpath2, inpath3)
-    #plot_three_cases(inpath4, inpath6, inpath8)
-    #plot_three_cases_2(inpath7, inpath9, inpath8)
-    plot_three_cases_3(inpath4, inpath5, inpath6)
+    inpath10 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000D/"
+    inpath11 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000E/"
+    inpath12 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000F/"
     
+    inpath13 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_500/"
+    inpath14 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_500F/"
+
+    plot_all_bestfit()
+    #obtain_chi2_alpha_evi(inpath30, endcffile=".VOID.dat.2pcf")
+    #obtain_chi2_alpha_evi(inpath31, endcffile=".VOID.dat.2pcf")
+    exit()
+
+
+    dict_labels = {"label1":"stitch subvolume", "label2":"sm stitch subvolume", "label3":"avg2000",
+                    "alpha1best":r"$\alpha_\mathrm{best, ST}$", "alpha2best":r"$\alpha_\mathrm{best, STSM}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+                    "alpha1":r"$\alpha_\mathrm{ST}$", "alpha2":r"$\alpha_\mathrm{STSM}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+                    "sigma1":r"$\sigma_\mathrm{ST}$", "sigma2":r"$\sigma_\mathrm{STSM}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+                    "filename":"/home/astro/variu/temp/B_STSUB_STSUBSM_TEM_"}
+    plot_three_cases(inpath30, inpath31, inpath21, dict_labels, endcffile=".VOID.dat.2pcf")
+
+    
+    dict_labels = {"label1":"stitch_2000_50", "label2":"sm stitch_2000_50", "label3":"avg2000",
+                    "alpha1best":r"$\alpha_\mathrm{best, ST}$", "alpha2best":r"$\alpha_\mathrm{best, STSM}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+                    "alpha1":r"$\alpha_\mathrm{ST}$", "alpha2":r"$\alpha_\mathrm{STSM}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+                    "sigma1":r"$\sigma_\mathrm{ST}$", "sigma2":r"$\sigma_\mathrm{STSM}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+                    "filename":"/home/astro/variu/temp/B_ST200050_ST200050SM_TEM_"}
+    plot_three_cases(inpath32, inpath33, inpath21, dict_labels, endcffile=".VOID.dat.2pcf")
+
+
+    # dict_labels = {"label1":"Galaxy: 12 DOF", "label2":"Parabola: 11 DOF", "label3":"Template: 12 DOF",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, GAL}$", "alpha2best":r"$\alpha_\mathrm{best, PAR}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{GAL}$", "alpha2":r"$\alpha_\mathrm{PAR}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{GAL}$", "sigma2":r"$\sigma_\mathrm{PAR}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/chengsplots/B_GAL_PAR_TEM_"}
+    # plot_three_cases(inpath1, inpath2, inpath21, dict_labels, endcffile=".VOID.dat.2pcf")
+
+    # dict_labels = {"label1":"Galaxy: 12 DOF", "label2":"Parabola: 11 DOF", "label3":"Template: 12 DOF",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, GAL}$", "alpha2best":r"$\alpha_\mathrm{best, PAR}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{GAL}$", "alpha2":r"$\alpha_\mathrm{PAR}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{GAL}$", "sigma2":r"$\sigma_\mathrm{PAR}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/B_GAL_PAR_TEM_"}
+    # plot_three_cases(inpath1, inpath2, inpath3, dict_labels, endcffile=".VOID.dat.2pcf")
+
+
+    # dict_labels = {"label1":"Galaxy: 12 DOF", "label2":"Parabola 2: 11 DOF", "label3":"Template: 12 DOF",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, GAL}$", "alpha2best":r"$\alpha_\mathrm{best, PAR2}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{GAL}$", "alpha2":r"$\alpha_\mathrm{PAR2}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{GAL}$", "sigma2":r"$\sigma_\mathrm{PAR2}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/LC_GAL_PAR2_TEM_"}
+    # plot_three_cases(inpath4, inpath6, inpath8, dict_labels)
+
+    # dict_labels = {"label1":"Template old: 12 DOF", "label2":"Template Box: 12 DOF", "label3":"Template new: 12 DOF",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, OLD}$", "alpha2best":r"$\alpha_\mathrm{best, BOX}$", "alpha3best":r"$\alpha_\mathrm{best, NEW}$",
+    #                 "alpha1":r"$\alpha_\mathrm{OLD}$", "alpha2":r"$\alpha_\mathrm{BOX}$", "alpha3":r"$\alpha_\mathrm{NEW}$",
+    #                 "sigma1":r"$\sigma_\mathrm{OLD}$", "sigma2":r"$\sigma_\mathrm{BOX}$", "sigma3":r"$\sigma_\mathrm{NEW}$",
+    #                 "filename":"/home/astro/variu/temp/LC_OLD_BOX_NEW_"}
+    # plot_three_cases(inpath7, inpath9, inpath8, dict_labels)
+
+
+    # dict_labels = {"label1":"Galaxy: 12 DOF", "label2":"Parabola: 11 DOF", "label3":"Parabola 2: 11 DOF",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, GAL}$", "alpha2best":r"$\alpha_\mathrm{best, PAR}$", "alpha3best":r"$\alpha_\mathrm{best, PAR2}$",
+    #                 "alpha1":r"$\alpha_\mathrm{GAL}$", "alpha2":r"$\alpha_\mathrm{PAR}$", "alpha3":r"$\alpha_\mathrm{PAR2}$",
+    #                 "sigma1":r"$\sigma_\mathrm{GAL}$", "sigma2":r"$\sigma_\mathrm{PAR}$", "sigma3":r"$\sigma_\mathrm{PAR2}$",
+    #                 "filename":"/home/astro/variu/temp/LC_GAL_PAR_PAR2_"}
+    # plot_three_cases(inpath4, inpath5, inpath6, dict_labels)
+
+
+    # dict_labels = {"label1":"Temp fast 1.5", "label2":"Temp fast 2.0", "label3":"Temp FFTlinlog",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEMe}$", "alpha2best":r"$\alpha_\mathrm{best, TEMf}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEMe}$", "alpha2":r"$\alpha_\mathrm{TEMf}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEMe}$", "sigma2":r"$\sigma_\mathrm{TEMf}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/LC_TEMe_TEMf_TEM_"}
+    # plot_three_cases(inpath11, inpath12, inpath8, dict_labels)
+    
+
+    # dict_labels = {"label1":"Temp fast 1.5", "label2":"Temp fast 1.0", "label3":"Temp FFTlinlog",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEMe}$", "alpha2best":r"$\alpha_\mathrm{best, TEMd}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEMe}$", "alpha2":r"$\alpha_\mathrm{TEMd}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEMe}$", "sigma2":r"$\sigma_\mathrm{TEMd}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/LC_TEMe_TEMd_TEM_"}
+    # plot_three_cases(inpath11, inpath10, inpath8, dict_labels)
+    
+
+    # dict_labels = {"label1":"Temp 500 FFTlinlog", "label2":"Temp 500 fast 2.0", "label3":"Temp 2000 FFTlinlog",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEM500FFT}$", "alpha2best":r"$\alpha_\mathrm{best, TEM500F}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEM500FFT}$", "alpha2":r"$\alpha_\mathrm{TEM500F}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEM500FFT}$", "sigma2":r"$\sigma_\mathrm{TEM500F}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/LC_TEM500FFT_TEM500F_TEM_"}
+    # plot_three_cases(inpath13, inpath14, inpath8, dict_labels)
+
+
+    # dict_labels = {"label1":"Temp 500 FFTlinlog", "label2":"Temp 500 fast 2.0", "label3":"Temp 2000 fast 2.0",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEM500FFT}$", "alpha2best":r"$\alpha_\mathrm{best, TEM500F}$", "alpha3best":r"$\alpha_\mathrm{best, TEMF}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEM500FFT}$", "alpha2":r"$\alpha_\mathrm{TEM500F}$", "alpha3":r"$\alpha_\mathrm{TEMF}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEM500FFT}$", "sigma2":r"$\sigma_\mathrm{TEM500F}$", "sigma3":r"$\sigma_\mathrm{TEMF}$",
+    #                 "filename":"/home/astro/variu/temp/LC_TEM500FFT_TEM500F_TEMF_"}
+    # plot_three_cases(inpath13, inpath14, inpath12, dict_labels)
+    
+
+    # dict_labels = {"label1":"Temp 500 FFTlinlog", "label2":"Temp 500 fast 2.0", "label3":"Temp 2000 fast 2.0",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEM500FFT}$", "alpha2best":r"$\alpha_\mathrm{best, TEM500F}$", "alpha3best":r"$\alpha_\mathrm{best, TEMF}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEM500FFT}$", "alpha2":r"$\alpha_\mathrm{TEM500F}$", "alpha3":r"$\alpha_\mathrm{TEMF}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEM500FFT}$", "sigma2":r"$\sigma_\mathrm{TEM500F}$", "sigma3":r"$\sigma_\mathrm{TEMF}$",
+    #                 "filename":"/home/astro/variu/temp/B_TEM500FFT_TEM500F_TEMF_"}
+    # plot_three_cases(inpath22, inpath23, inpath21, dict_labels, endcffile=".VOID.dat.2pcf")
+
+
+    # dict_labels = {"label1":"Temp 2000 fast 1.5", "label2":"Temp 2000 fast 2.0", "label3":"Temp 2000 FFTlinlog",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEME}$", "alpha2best":r"$\alpha_\mathrm{best, TEMF}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEME}$", "alpha2":r"$\alpha_\mathrm{TEMF}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEME}$", "sigma2":r"$\sigma_\mathrm{TEMF}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/B_TEME_TEMF_TEM_"}
+    # plot_three_cases(inpath20, inpath21, inpath3, dict_labels, endcffile=".VOID.dat.2pcf")
+
+    
+
+    # dict_labels = {"label1":"Temp 2000 fast 2.0", "label2":"Temp 2000 FFTlinlog old", "label3":"Temp 2000 FFTlinlog",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEMF}$", "alpha2best":r"$\alpha_\mathrm{best, TEMold}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEMF}$", "alpha2":r"$\alpha_\mathrm{TEMold}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEMF}$", "sigma2":r"$\sigma_\mathrm{TEMold}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/B_TEMF_TEMold_TEM_"}
+    # plot_three_cases(inpath21, inpath24, inpath3, dict_labels, endcffile=".VOID.dat.2pcf")
+
+
+    # dict_labels = {"label1":"Temp 500 fast 2.0", "label2":"Temp 2000 FFTlinlog old", "label3":"Temp 2000 FFTlinlog",
+    #                 "alpha1best":r"$\alpha_\mathrm{best, TEM500F}$", "alpha2best":r"$\alpha_\mathrm{best, TEMold}$", "alpha3best":r"$\alpha_\mathrm{best, TEM}$",
+    #                 "alpha1":r"$\alpha_\mathrm{TEM500F}$", "alpha2":r"$\alpha_\mathrm{TEMold}$", "alpha3":r"$\alpha_\mathrm{TEM}$",
+    #                 "sigma1":r"$\sigma_\mathrm{TEM500F}$", "sigma2":r"$\sigma_\mathrm{TEMold}$", "sigma3":r"$\sigma_\mathrm{TEM}$",
+    #                 "filename":"/home/astro/variu/temp/B_TEM500F_TEMold_TEM_"}
+    # plot_three_cases(inpath23, inpath24, inpath3, dict_labels, endcffile=".VOID.dat.2pcf")
+
 
     exit()
 

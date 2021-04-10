@@ -65,7 +65,6 @@ class XiData():
             sdt, xidt = np.loadtxt(self.input_data, usecols=(0, 1), unpack=True)
             sd = sdt[self.min_s_index: ]
             xid = xidt[self.min_s_index: ]
-
             ndbin = sd.size
         except:
             print('ERROR: cannot read the input data.', file=sys.stderr)

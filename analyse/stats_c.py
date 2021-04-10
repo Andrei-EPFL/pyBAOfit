@@ -65,6 +65,9 @@ with open(fstats, "r") as f:
   line = f.readline()
   evi = float(line.split()[5])
 
+chi2_arr = np.loadtxt(chains, usecols=(1), unpack=True)
+min_chi2 = np.min(chi2_arr)
+
 with open(ofile, "w") as f:
-  f.write('{0:.5f} {1:.6f} {2:.5f}'.format(best, sigma, evi))
+  f.write('{0:.5f} {1:.6f} {2:.5f} {3:.5f}'.format(best, sigma, evi, min_chi2))
 

@@ -46,15 +46,16 @@ def my_sample(fileroot, npar):
   return sample
 
 
-def plot_corner(samples, ofile):
+def plot_corner(samples, ofile, colors, legends, line_args):
 
   g = plots.getSubplotPlotter()
   g.settings.lab_fontsize = 16
-  #g.triangle_plot(samples, filled='True', legend_labels=['Parabola', 'Galaxy', 'Void', 'VoidGL', 'VoidGL2'], \
-  #    line_args=[{'lw':2, 'color':'green'}, {'lw':2, 'color':'blue'}, {'lw':2, 'color':'red'}, {'lw':2, 'color':'orange'}, {'lw':2, 'color':'magenta'}], contour_colors=['green', 'blue', 'red', 'orange', 'magenta'])
-  g.triangle_plot(samples, filled='True', legend_labels=['100', '500', '2000 filtered'], \
-      line_args=[{'lw':0.7, 'color':'green'}, {'lw':0.7, 'color':'magenta'}, {'lw':0.7, 'color':'orange'}], contour_colors=['green','magenta', 'orange'])
-#sample_par, sample_gal, sample_voiGL, sample_voiCIC, sample_voiCIC512
+  #g.settings.alpha_filled_add = 0.5
+  #g.settings.alpha_factor_contour_lines = 0.5
+  
+  g.triangle_plot(samples, filled='True', legend_labels=legends, \
+      line_args=line_args, contour_colors=colors)
+
   # Reset axis ticks for the c parameter
   ax = g.subplots[2,2]
   xmin, xmax = ax.get_xlim()
@@ -87,28 +88,47 @@ def plot_corner(samples, ofile):
 
 
 def main():
-  inpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/16R/"
-  fileroot='BAOfit_CATALPTCICz0.466G960S527868848.VOID.dat.2pcf_'
-  #fileroot='BAOfit_avg_16R.2pcf_'
+  inpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/avg_fit//"
+  #fileroot='BAOfit_CATALPTCICz0.466G960S527868848.VOID.dat.2pcf_'
+  fileroot = "BAOfit_avg_16R.2pcf_" #'BAOfit_BigMD_vv.2pcf_' #'BAOfit_avg_16R_vhxcf.xcf_' #'BAOfit_BigMD_gv.xcf_' #
   
-  ofile = '/home/astro/variu/' + fileroot +'getdist_60_150.pdf'
+  ofile1 = '/home/astro/variu/' + fileroot +'_fast2.0_R16_getdist_60_150_myst.pdf'
   
-  
-  sample_gal = my_sample(inpath + "/void_G1024CIC_60_150_mocks_100temp/" + fileroot, 3)
-  sample_par = my_sample(inpath + "/void_G1024CIC_60_150_mocks_500temp/" + fileroot, 3)
-  sample_voiGL = my_sample(inpath + "/G1024CIC_60_150_m_2000_filtemp/" + fileroot, 3)
-  #sample_voiCIC512 = my_sample(inpath + "/void_G512CIC_60_150/" + fileroot, 3)
-  
-  # sample_gal = my_sample(inpath + "/galaxy_60_150_fast/" + fileroot, 3)
-  # sample_par = my_sample(inpath + "/parab_60_150/" + fileroot, 4)
-  # sample_voi = my_sample(inpath + "/voidtemplate_conv_60_150/" + fileroot, 3)
-  # sample_voi_GL = my_sample(inpath + "/voidtemplate_60_150_G2048L512_1000bins/" + fileroot, 3)
-  # sample_voi_GL2 = my_sample(inpath + "/voidtemplate_60_150_G2048L512_1000bins_2/" + fileroot, 3)
-  
-  #plot_corner([sample_par, sample_gal, sample_voi, sample_voi_GL, sample_voi_GL2], ofile)
-  #plot_corner([sample_par, sample_voi, sample_voi_GL2], ofile)
-  plot_corner([sample_gal, sample_par,  sample_voiGL], ofile)
 
+  sample_1 = my_sample(inpath + "/G1024CIC_60_150_2000F/" + fileroot, 3)
+  sample_2 = my_sample(inpath + "/stitched_subvolumes/" + fileroot, 3)
+  sample_3 = my_sample(inpath + "/lin_sav_gol_71_5_stitched_subvolumes/" + fileroot, 3)
+  sample_4 = my_sample(inpath + "/stitched_G2048_50_G512_2000/" + fileroot, 3)
+  sample_5 = my_sample(inpath + "/sm_stitched_G2048_50_G512_2000/" + fileroot, 3)
+  #sample_4 = my_sample(inpath + "/FFTlog/powspecFT_R-scaled2.37-int_flat_0.95/" + fileroot, 3)
+  #sample_ = my_sample("../output/BAOfit_daniels2pcf.2pcf_", 3)
+  plot_corner([sample_1, sample_2, sample_3, sample_4, sample_5], ofile1, ["green", "magenta", "blue", "orange", "cyan"], ["avg2000", "stitch subvolume", "stitch subvolume sm", "stitch 2000 50", "stitch 2000 50 sm"], [{"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}, {"lw":0.7, "color":"blue","ls":"--"}, {"lw":0.7, "color":"orange","ls":"--"}, {"lw":0.7, "color":"cyan","ls":"--"}])
+  #plot_corner([sample_], "../output/BAOfit.posterior.pdf", ["green"], ["Test"], [{"lw":0.7, "color":"green","ls":"--"}])
+
+  # sample_list = []
+  # legend_list = []
+  # line_args = []
+
+  # fracs = ["10","20", "50", "100", "500","1000", "1500"]
+  
+  # cm = plt.get_cmap('gist_rainbow')
+  # NUM_COLORS = len(fracs) + 1
+  # color_list=[cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)]
+
+  # for i, frac in enumerate(fracs):
+  #   sample_ = my_sample(inpath + "//powspecFT_R-16-int_flat_1.00-N{}/".format(frac) + fileroot, 3)
+  #   sample_list.append(sample_)
+  #   legend_list.append("powspecFT-R-16-int-flat-1.00-N{}".format(frac))
+  #   line_args.append({"lw":0.7, "color":color_list[i],"ls":"--"})
+  
+  # sample_ = my_sample(inpath + "/mysmoothed_temp_R16_fa/" + fileroot, 3)
+  # sample_list.append(sample_)
+  # legend_list.append("mysmoothed-temp-R16-fa")
+  # line_args.append({"lw":0.7, "color":color_list[7],"ls":"--"})
+  
+
+  # plot_corner(sample_list, ofile1, color_list, legend_list, line_args)
+  
 if __name__== '__main__':
   if len(sys.argv) != 1 and len(sys.argv) != 2:
     print('Usage: python {} [C_MAX]'.format(sys.argv[0]), file=sys.stderr)

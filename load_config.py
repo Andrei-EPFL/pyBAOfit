@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import os
 import shutil
@@ -12,9 +13,9 @@ from mychi2 import Chi2Class
 from mymultinest import MultinestClass
 from myplot import find_peaks_in_chi2alpha, plot_best_fit
 
-def main():
+def obtain_parameters(parser):
     #### Arguments of the code    
-    parser = argparse.ArgumentParser()
+
     parser.add_argument("--config", type=str, help="ini file holding configuration")
     parser.add_argument("--output_dir", type=str, help="output directory (overrides config file)")
     parser.add_argument("--input_data", type=str, help="input file (file to be fitted) (same)")
@@ -110,7 +111,6 @@ def main():
     print("INFO: The number of bins is %i" %xid_var.nidx)
     
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
-    print(chi2_var.chi2_func(1, [1,1]))
     #find_peaks_in_chi2alpha(output_dir, os.path.basename(input_data), chi2_var)
     #plot_best_fit(chi2_var, xim_var)
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
