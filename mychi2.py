@@ -78,7 +78,6 @@ class Chi2Class():
         B = params[0]
         imin = self.xid.imin
         imax = self.xid.imax
-
         # Compute the model 2PCF with a given alpha
         fxim = interp1d(self.xim.sm, self.xim.xi_model(params), kind='cubic')
         xi = fxim(self.xid.sd[imin:imax] * alpha)
@@ -104,13 +103,15 @@ class Chi2Class():
 
         # Compute the model 2PCF with a given alpha
         fxim = interp1d(sm, self.xim.xi_model(params), kind='cubic')
+        fxim_nw = interp1d(sm, self.xim.xi_model_nw(params), kind='cubic')
         xi = fxim(self.xid.sd[imin:imax] * alpha)
+        xi_nw = fxim_nw(self.xid.sd[imin:imax] * alpha)
 
         # Least square fitting of nuisance parameters
         dxi = self.xid.xid[imin:imax] - xi * (B**2)
         poly = np.dot(self.M[:, imin:imax], dxi)
         a_poly = bwd_subst(self.A, poly)
-        
+
         # Compute best-fit
         if alpha >= 1:
             imin0, imax0, nidx0 = get_index(sm, sm[1], sm[-2] / alpha)
@@ -118,9 +119,11 @@ class Chi2Class():
             imin0, imax0, nidx0 = get_index(sm, sm[1] / alpha, sm[-2])
         
         best = B**2 * fxim(sm[imin0:imax0] * alpha)
+        best_nw = B**2 * fxim_nw(sm[imin0:imax0] * alpha)
         for i in range(self.xim.npoly):
             best += a_poly[i] * sm[imin0:imax0]**(i - 2)
-        return [sm[imin0:imax0], best]
+            best_nw += a_poly[i] * sm[imin0:imax0]**(i - 2)
+        return [sm[imin0:imax0], best, best_nw]
 
     def best_fit_broadband(self, alpha, params):
         '''Compute the best-fit polynomial broadband curve.'''

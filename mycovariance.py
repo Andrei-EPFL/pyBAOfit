@@ -47,6 +47,7 @@ class CovMat():
             ximock = [None] * Nmock
             for i in range(Nmock):
                 temp = np.loadtxt(mocks[i], usecols=(1, ), unpack=True)
+                # temp = np.loadtxt(mocks[i], usecols=(3, ), unpack=True)
                 ximock[i] = temp[self.min_s_index: ]
 
             ximock = np.array(ximock)

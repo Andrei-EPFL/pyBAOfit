@@ -130,7 +130,9 @@ class XiModel():
 
     def pk_void(self):
         try:
-            kv, Pv = np.loadtxt(self.input_pvoid, comments='#', unpack=True, usecols=(0, 1))
+            kv, Pv = np.loadtxt(self.input_pvoid, comments='#', unpack=True, usecols=(0, 1), dtype=np.float64)
+            print(np.log(np.min(kv)), np.log(np.min(self.k)))
+            print(np.log(np.max(kv)), np.log(np.max(self.k)))
         except:
             print('ERROR: cannot read the linear power spectrum of voids file.', file=sys.stderr)
             sys.exit(1)
@@ -222,13 +224,77 @@ class XiModel():
         Pm = ((self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw)
         if(self.model == 'galaxy'):
             Pm = Pm * 1.
+        elif(self.model == 'galaxyx'):
+            Pm = -Pm * 1.
         elif(self.model == 'pvoid'):       
             Pm = Pm * (self.Pvoid / self.Pnw)
+        elif(self.model == 'pvoidnw'):       
+            Pm = self.Pvoid
         elif(self.model == 'pvoid_exclusion'):       
             Pm = self.Pvoid * np.exp(-0.5 * self.k2 * Snl**2)
         elif(self.model == 'parab'):
             c = params[2]
             Pm = Pm * (1 + c * self.k2)    
+        elif(self.model == 'parabx'):
+            c = params[2]
+            Pm = - Pm * (1 + c * self.k2)
+        elif(self.model == 'parabnw'):
+            c = params[2]
+            Pm = self.Pnw * (1 + c * self.k2)    
+        else:
+            print('ERROR: The model %s does not exist! Exiting the code.' %(self.model))
+            print('OPTIONS: galaxy, pvoid, parab')
+            sys.exit(1)
+
+        if(self.method == 'FFTlog'):
+            Pint = interp1d(np.log(self.k), np.log(Pm), kind='cubic')
+            Pkfn = lambda k: np.exp(Pint(np.log(k)))
+        elif (self.method == 'FFTlinlog'):
+            Pint = interp1d(np.log(self.k), self.k*Pm, kind='cubic')
+            Pkfn = lambda k: Pint(np.log(k))/k
+        elif (self.method == 'fast'):
+            Pm *= self.k2 * self.k * self.eka2
+            xim = np.zeros(self.nsbin)
+            if self.k_interp == True:
+                for i in range(self.nsbin):
+                    xim[i] = np.sum(Pm * self.j0[i,:]) * (np.log(self.k[1]) - np.log(self.k[0]))
+            else:
+                for i in range(self.nsbin):
+                    xim[i] = simps(Pm * self.j0[i,:], np.log(self.k))
+            return xim
+        else:
+            print('ERROR: The method %s does not exist! Exiting the code.' %(self.method))
+            print('OPTIONS: FFTlinlog, FFTlog')
+            sys.exit(1)
+
+        s0, xi0 = self.xicalc(Pkfn, self.sm[0])
+        Xint = interp1d(s0, xi0*s0**2, kind='cubic')
+        xi = Xint(self.sm) / self.sm**2
+        return xi
+
+    def xi_model_nw(self, params):
+        '''Compute the template correlation function.
+        Arguments:
+            k, Plin, Pnw: arrays for the linear power spectra;
+            Prt: the ratio between the void and linear non-wiggle power spectra;
+            nbin: s bins;
+            Snl: the BAO damping factor;
+        Return: xi_model.'''
+        Snl = params[1]
+
+        # Pm = ((self.Plin - self.Pnw) * np.exp(-0.5 * self.k2 * Snl**2) + self.Pnw)
+        if(self.model == 'galaxy'):
+            Pm = self.Pnw
+        elif(self.model == 'galaxyx'):
+            Pm = -self.Pnw
+        elif(self.model == 'pvoid'):       
+            Pm = self.Pvoid
+        elif(self.model == 'parab'):
+            c = params[2]
+            Pm = self.Pnw * (1 + c * self.k2)    
+        elif(self.model == 'parabx'):
+            c = params[2]
+            Pm = - self.Pnw * (1 + c * self.k2)    
         else:
             print('ERROR: The model %s does not exist! Exiting the code.' %(self.model))
             print('OPTIONS: galaxy, pvoid, parab')
@@ -311,10 +377,10 @@ class XiModel():
         return self.sm, xi * B**2
             
     def xi_model_params(self):
-        if(self.model == 'pvoid' or self.model == 'galaxy' or self.model == 'pvoid_exclusion'):
+        if(self.model == 'pvoid' or self.model == 'pvoidnw' or self.model == 'galaxy' or self.model == 'pvoid_exclusion' or self.model == 'galaxyx'):
             print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl']
-        if(self.model == 'parab'):
+        if(self.model == 'parab' or self.model == 'parabnw' or self.model == 'parabx'):
             print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl', 'c']
         

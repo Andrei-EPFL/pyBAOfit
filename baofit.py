@@ -110,13 +110,12 @@ def main():
     print("INFO: The number of bins is %i" %xid_var.nidx)
     
     chi2_var = Chi2Class(xim_var, xid_var, covmat_var)
-    print(chi2_var.chi2_func(1, [1,1]))
     #find_peaks_in_chi2alpha(output_dir, os.path.basename(input_data), chi2_var)
     #plot_best_fit(chi2_var, xim_var)
     multinest_var = MultinestClass(config_file, outbase, chi2_var)
     #print("test")
     #sys.exit()
-    
+    print("Start Multinest!", flush=True)
     multinest_var.run_multinest()
     multinest_var.analyse_multinest()
     

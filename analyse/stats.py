@@ -73,7 +73,8 @@ with open(fstats, "r") as f:
 res = pmn.Analyzer(outputfiles_basename=fileroot, n_params=3)
 stats = res.get_stats()['marginals']
 median = stats[0]['median']
+bestpar = res.get_best_fit()['parameters']
+
 
 with open(ofile, "w") as f:
-  f.write('{0:.5f} {1:.6f} {2:.5f} {3:.5f} {4:.5f}'.format(best, sigma, evi, min_chi2, median))
-
+  f.write('{0:.5f} {1:.6f} {2:.5f} {3:.5f} {4:.5f} {5:.5f} {6:.5f} {7:.5f}'.format(best, sigma, evi, min_chi2, median, bestpar[0], bestpar[1], bestpar[2]))
