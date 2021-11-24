@@ -97,57 +97,37 @@ def main():
   # fileroot = 'BAOfit_avg_16R.2pcf_' # 'BAOfit_avg_16R_vhxcf.xcf_' #'BAOfit_BigMD_vv.2pcf_' #"BAOfit_avg_16R.2pcf_" # 'BAOfit_BigMD_gv.xcf_' #
   # fileroot = "BAOfit_avg_16R_vhxcf.xcf_"
   fileroot = "BAOfit_avg_1000_16R.2pcf_"
-  ofile1 = inpath + fileroot +'_temp2.pdf'
-  sample_1 = my_sample(inpath + "/parab_60_150/" + fileroot, 4)
-  sample_2 = my_sample(inpath + "/stitched_16R_G2048_50_G512_2000_CG_LC_60_150/" + fileroot, 3)
-  sample_3 = my_sample(inpath + "/avg_16R_2000_SK_60_150/" + fileroot, 3)
+  # fileroot = "BAOfit_CATALPTCICz0.466G960S1014964334.dat.2pcf_"
   
-  plot_corner([sample_1, sample_2, sample_3], ofile1, ["green", "magenta", "blue"], ["parab", "CGLC", "SKB"], [{"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}, {"lw":0.7, "color":"blue","ls":"--"}])
+  # ofile1 = inpath + fileroot +'_temp2.pdf'
+  # sample_1 = my_sample(inpath + "/parab_60_150/" + fileroot, 4)
+  # sample_2 = my_sample(inpath + "/stitched_16R_G2048_50_G512_2000_CG_LC_60_150/" + fileroot, 3)
+  # sample_3 = my_sample(inpath + "/avg_16R_2000_SK_60_150/" + fileroot, 3)
   
-
-  exit()
-  fileroot = "BAOfit_CATALPTCICz0.466G960S1014964334.dat.2pcf_"
-  ofile1 = inpath + fileroot +'_temp.pdf'
-  
-  
-  sample_1, sigmanl1 = my_sample(inpath + "/stitched_16R_G2048_50_G512_2000_CG_B/" + fileroot, 3)
-  sample_2, sigmanl2 = my_sample(inpath + "/stitched_16R_G2048_50_G512_2000_CG_LC/" + fileroot, 3)
-  sample_3, sigmanl3 = my_sample(inpath + "/avg_16R_2000_SK_60_150/" + fileroot, 3)
-  sample_4, sigmanl4 = my_sample(inpath + "/parab_60_150_fixc/" + fileroot, 4)
-  sample_5, sigmanl5 = my_sample(inpath + "/parab_60_150_gauss/" + fileroot, 4)
-  
+  # plot_corner([sample_1, sample_2, sample_3], ofile1, ["green", "magenta", "blue"], ["parab", "CGLC", "SKB"], [{"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}, {"lw":0.7, "color":"blue","ls":"--"}])
   
 
-  # plot_corner([sample_4, sample_7], ofile1, ["green", "magenta"], ["18R 60 150", "18R 60 170"], [{"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}])
-  # plot_corner([sample_1, sample_2, sample_3, sample_4], ofile1, ["green", "magenta", "blue", "orange"], ["parab init", "parab large c", "parablargec2", "parablargec3"], [{"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}, {"lw":0.7, "color":"blue","ls":"--"}, {"lw":0.7, "color":"orange","ls":"--"}])
-  plot_corner([sample_5, sample_4, sample_1, sample_2, sample_3], [sigmanl5, sigmanl4, sigmanl1, sigmanl2, sigmanl3], ofile1, ["orange", "red", "green", "magenta", "blue"], ["parabg", "fixc", "CGB", "CGLC", "SKB"], [{"lw":0.7, "color":"orange","ls":"--"}, {"lw":0.7, "color":"red","ls":"--"}, {"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}, {"lw":0.7, "color":"blue","ls":"--"}])
-  # plot_corner([sample_1, sample_2, sample_3, sample_4, sample_5, sample_6, sample_7, sample_8, sample_9, sample_10, sample_11, sample_12], ofile1, ["green", "magenta", "blue", "green", "magenta", "blue", "green", "magenta", "blue", "red", "orange", "cyan"], ["18RF0.075 40 150", "16RF0.3 40 150", "16RF0.075 40 150", "18RF0.075 60 150", "16RF0.3 60 150", "16RF0.075 60 150", "18RF0.075 60 170", "16RF0.3 60 170", "16RF0.075 60 170", "18RF0.075 40 170", "16RF0.3 40 170", "16RF0.075 40 170"], [{"lw":0.7, "ls":"-"}, {"lw":0.7, "ls":"-"}, {"lw":0.7, "ls":"-"},{"lw":0.7, "ls":"--"}, {"lw":0.7, "ls":"--"}, {"lw":0.7, "ls":"--"},{"lw":0.7, "ls":"-"}, {"lw":0.7, "ls":"-"}, {"lw":0.7, "ls":"-"}, {"lw":0.7, "ls":"--"}, {"lw":0.7, "ls":"--"}, {"lw":0.7, "ls":"--"}])
-  # plot_corner([sample_1, sample_2, sample_3, sample_4, sample_5, sample_6, sample_7, sample_8, sample_9, sample_10, sample_11, sample_12], ofile1, ["green", "magenta", "blue", "green", "magenta", "blue", "green", "magenta", "blue", "red", "orange", "cyan"], ["18RF0.075 40 150", "16RF0.3 40 150", "16RF0.075 40 150", "18RF0.075 60 150", "16RF0.3 60 150", "16RF0.075 60 150", "18RF0.075 60 170", "16RF0.3 60 170", "16RF0.075 60 170", "18RF0.075 40 170", "16RF0.3 40 170", "16RF0.075 40 170"], [{"lw":0.7, "color":"green","ls":"-"}, {"lw":0.7, "color":"magenta","ls":"-"}, {"lw":0.7, "color":"blue","ls":"-"},{"lw":0.7, "color":"green","ls":":"}, {"lw":0.7, "color":"magenta","ls":":"}, {"lw":0.7, "color":"blue","ls":":"},{"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}, {"lw":0.7, "color":"blue","ls":"--"}, {"lw":0.7, "color":"red","ls":"--"}, {"lw":0.7, "color":"orange","ls":"--"}, {"lw":0.7, "color":"cyan","ls":"--"}])
-  #plot_corner([sample_], "../output/BAOfit.posterior.pdf", ["green"], ["Test"], [{"lw":0.7, "color":"green","ls":"--"}])
-
-  # sample_list = []
-  # legend_list = []
-  # line_args = []
-
-  # fracs = ["10","20", "50", "100", "500","1000", "1500"]
-  
-  # cm = plt.get_cmap('gist_rainbow')
-  # NUM_COLORS = len(fracs) + 1
-  # color_list=[cm(1.*i/NUM_COLORS) for i in range(NUM_COLORS)]
-
-  # for i, frac in enumerate(fracs):
-  #   sample_ = my_sample(inpath + "//powspecFT_R-16-int_flat_1.00-N{}/".format(frac) + fileroot, 3)
-  #   sample_list.append(sample_)
-  #   legend_list.append("powspecFT-R-16-int-flat-1.00-N{}".format(frac))
-  #   line_args.append({"lw":0.7, "color":color_list[i],"ls":"--"})
-  
-  # sample_ = my_sample(inpath + "/mysmoothed_temp_R16_fa/" + fileroot, 3)
-  # sample_list.append(sample_)
-  # legend_list.append("mysmoothed-temp-R16-fa")
-  # line_args.append({"lw":0.7, "color":color_list[7],"ls":"--"})
+  ofile = inpath + fileroot +'_all_models.pdf'
   
 
-  # plot_corner(sample_list, ofile1, color_list, legend_list, line_args)
+  sample_list = []
+  line_args = []
+
+  models = ["parab_60_150", "avg_16R_2000_SK_60_150", "stitched_16R_G2048_50_G512_2000_CG_LC_60_150", "stitched_G2048_50_G512_2000_SK_B_60_150", "stitched_16R_G2048_50_G512_2000_CG_B_60_150"]
+  legend_list = ["PAR", "SK LC", "CG LC", "SK B", "CG B"]
+  nparam = [4, 3, 3, 3, 3]
+
+  cm = plt.get_cmap('gist_rainbow')
+  NUM_COLORS = len(models)
+  color_list = [cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)]
+
+  for i, model in enumerate(models):
+    sample_ = my_sample(inpath + "/" +  model + "/" + fileroot, nparam[i])
+    sample_list.append(sample_)
+    line_args.append({"lw":0.7, "color":color_list[i],"ls":"--"})
+  
+  
+  plot_corner(sample_list, ofile, color_list, legend_list, line_args)
   
 if __name__== '__main__':
   if len(sys.argv) != 1 and len(sys.argv) != 2:

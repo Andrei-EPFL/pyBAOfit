@@ -52,8 +52,8 @@ class MultinestClass():
         stats = res.get_stats()['marginals']
         median = stats[0]['median']
         print(f"INFO: The median of alpha is {median}")
-        sb, bestfit, bestfit_nw = self.chi2_var.best_fit(bestpar[0], bestpar[1:])
+        sb, bestfit, bestfit_nw, bestfit_broadband = self.chi2_var.best_fit(bestpar[0], bestpar[1:])
         print("INFO: The chi2 for %s is equal to %f " %( self.outbase, self.chi2_var.chi2_func(bestpar[0], bestpar[1:]) ))
         print(("INFO: The best fit parameters are: ["+', '.join(['%f']*len(bestpar))+"]") % tuple(bestpar))
         bestfile = self.outbase + 'best_nw.dat'
-        np.savetxt(bestfile, np.transpose([sb, bestfit, bestfit_nw]), fmt='%.8g')
+        np.savetxt(bestfile, np.transpose([sb, bestfit, bestfit_nw, bestfit_broadband]), fmt='%.8g')

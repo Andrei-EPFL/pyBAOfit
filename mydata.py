@@ -49,6 +49,9 @@ class XiData():
         if min_s_index is None:
             min_s_index = config['params'].getint('min_s_index')
 
+        self.data_x_column = config['params'].getint('data_x_column')
+        self.data_y_column = config['params'].getint('data_y_column')
+
         self.input_data = input_data
         self.fit_smin = fit_smin
         self.fit_smax = fit_smax
@@ -62,7 +65,7 @@ class XiData():
     def get_xid(self):    
         print('STATUS: Read the input 2PCF to be fitted.')
         try:
-            sdt, xidt = np.loadtxt(self.input_data, usecols=(0, 1), unpack=True)
+            sdt, xidt = np.loadtxt(self.input_data, usecols=(self.data_x_column, self.data_y_column), unpack=True)
             sd = sdt[self.min_s_index: ]
             xid = xidt[self.min_s_index: ]
             ndbin = sd.size

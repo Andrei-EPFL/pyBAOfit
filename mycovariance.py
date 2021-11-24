@@ -20,6 +20,9 @@ class CovMat():
         min_s_index = args.min_s_index
         if min_s_index is None:
             min_s_index = config['params'].getint('min_s_index')
+        
+        self.mock_y_column = config['params'].getint('mock_y_column')
+        self.rescale_chi2_by = config["params"].getfloat("rescale_chi2_by")
 
         self.input_mocks = input_mocks
         if not os.path.isfile(self.input_mocks):
@@ -46,8 +49,7 @@ class CovMat():
             # Read 2PCF of mocks
             ximock = [None] * Nmock
             for i in range(Nmock):
-                temp = np.loadtxt(mocks[i], usecols=(1, ), unpack=True)
-                # temp = np.loadtxt(mocks[i], usecols=(3, ), unpack=True)
+                temp = np.loadtxt(mocks[i], usecols=(self.mock_y_column, ), unpack=True)
                 ximock[i] = temp[self.min_s_index: ]
 
             ximock = np.array(ximock)
