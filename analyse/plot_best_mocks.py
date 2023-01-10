@@ -70,8 +70,8 @@ def main():
     # myplot(datapath=datapath, bestpath=bestpath, type_ = "/stitched_16R_G2048_50_G512_2000_CG/", outpath=outpath + "stitched_16R_G2048_50_G512_2000_CG_B_best_B.pdf")
 
 
-    bestpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new/"
-    outpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new/"
+    bestpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new/fixSigmaNL/"
+    outpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new/fixSigmaNL/"
     datapath = "/scratch/variu/clustering/patchy_cmass_subset/lightcone_box1/real/vv2pcf/16R_1000cf/"    
     myplot(datapath=datapath, bestpath=bestpath, type_ = "/stitched_16R_G2048_50_G512_2000_CG_LC/", outpath=outpath + "more.pdf")
 

@@ -70,8 +70,15 @@ def read_data_mystats(inpath, endcffile=".dat.2pcf", begcffile=""):
     sigma = np.zeros(len(files))
     sigmanl = np.zeros(len(files))
     for i, file_ in enumerate(files):
-        file_m = inpath + f"/BAOfit_{begcffile}CATALPTCICz0.466G960S" + str(int(randnum[i])) + endcffile + "_mystats.txt"
-        alpha[i], sigma[i], alpham[i], sigmanl[i] = np.loadtxt(file_m, usecols=(0, 1, 4, 7), unpack=True)
+        files = glob.glob(inpath + f"/BAOfit_*CATALPTCICz0.466G960S" + str(int(randnum[i])) + endcffile + "_mystats.txt")
+        if len(files) == 1:
+            file_m = files[0]
+        else:
+            print(len(files))
+            print("there are more files with the same seed")
+            sys.exit()
+        # alpha[i], sigma[i], alpham[i], sigmanl[i] = np.loadtxt(file_m, usecols=(0, 1, 4, 7), unpack=True)
+        alpha[i], sigma[i], alpham[i] = np.loadtxt(file_m, usecols=(0, 1, 4), unpack=True)
     return alpha, sigma, alpham, sigmanl
 
 
@@ -97,6 +104,7 @@ def ax_style_my_corner_UL(ax, xmin, xmax, keys, outliers=False):
             if row != col:
                 ax[row][tcol].set_ylim([0.99 * xmin, 1.01 * xmax])
 
+
 def ax_style_my_corner_L(ax, xmin, xmax, keys, outliers=False):
     outlier = 0
     if outliers:
@@ -107,8 +115,8 @@ def ax_style_my_corner_L(ax, xmin, xmax, keys, outliers=False):
             tcol = col + outlier
             ax[row][tcol].set_xlim([0.99 * xmin, 1.01 * xmax])
             if row != col:
-                print(row, tcol)
                 ax[row][tcol].set_ylim([0.99 * xmin, 1.01 * xmax])
+
 
 def plot_my_corner_lower(ax, data_dict, dict_labels, keys, outliers=False):
     xmin = 100
@@ -152,8 +160,8 @@ def plot_my_corner_lower(ax, data_dict, dict_labels, keys, outliers=False):
 
     for i, key in enumerate(keys):
         ti = i + outlier
-        ax[i][0].set_ylabel(dict_labels[keys[i]]["alphamed"])
-        ax[-1][ti].set_xlabel(dict_labels[keys[i]]["alphamed"])
+        ax[i][0].set_ylabel("${0}$".format(dict_labels[keys[i]]["alphamed"]))
+        ax[-1][ti].set_xlabel("${0}$".format(dict_labels[keys[i]]["alphamed"]))
     
     ax[0][0].set_ylabel("")
 
@@ -204,7 +212,7 @@ def plot_my_corner_upper(ax, data_dict, dict_labels, keys, outliers=False):
         ax[row][-1].set_yticks(dict_labels["alphamed"]["ticks"])
         ax[row][-1].set_yticklabels(dict_labels["alphamed"]["ticks"])
         ax[row][-1].tick_params(axis="y", direction="out", left=False, right=True, labelleft=False, labelright=True)
-        ax[row][-1].set_ylabel(dict_labels[keys[row]]["alphamed"])
+        ax[row][-1].set_ylabel("${0}$".format(dict_labels[keys[row]]["alphamed"]))
         ax[row][-1].yaxis.set_label_position("right")
 
     for i in range(len(keys)):
@@ -212,7 +220,7 @@ def plot_my_corner_upper(ax, data_dict, dict_labels, keys, outliers=False):
         ax[0][ti].set_xticks(dict_labels["alphamed"]["ticks"])
         ax[0][ti].set_xticklabels(dict_labels["alphamed"]["ticks"], rotation=30)
         ax[0][ti].tick_params(axis="x", direction="out", bottom=False, top=True, labelbottom=False, labeltop=True)
-        ax[0][ti].set_xlabel(dict_labels[keys[i]]["alphamed"])
+        ax[0][ti].set_xlabel("${0}$".format(dict_labels[keys[i]]["alphamed"]))
         ax[0][ti].xaxis.set_label_position("top")
        
     return xmin, xmax
@@ -245,15 +253,15 @@ def plot_evi_tension(fig, ax, data_dict, dict_labels, keys, evi_chi2="evi"):
         fraction_ = (data_dict[keys[i]]["alphamed"] - 1) / data_dict[keys[i]]["sigma"]
         range_ = (fraction_ > dict_labels["pullone"]["maxval"]) | (fraction_ < dict_labels["pullone"]["minval"])
         counter = len(fraction_[range_])
-        print(len(fraction_[range_1]))
+        print(f"# cases when sigma_nl < 9 = {len(fraction_[range_1])}")
         ax[i][i].hist(fraction_[range_1], color="green", density=True, histtype="step", bins=dict_labels["pullone"]["bins"])#, label=str(counter))
-        ax[i][i].hist(fraction_, color="orange", ls="--", density=True, histtype="step", bins=dict_labels["pullone"]["bins"])#, label=str(counter))
+        # ax[i][i].hist(fraction_, color="orange", ls="--", density=True, histtype="step", bins=dict_labels["pullone"]["bins"])#, label=str(counter))
         ax[i][i].plot(x_n, gauss(x_n, 0, 1), ls="--", color="k")
 
         ax[i][i].tick_params(axis="x", direction="in", bottom=True, top=True, labelbottom=False, labeltop=True)
         ax[i][i].set_xticks(dict_labels["pullone"]["ticks"])
 
-        ax[i][i].legend(loc="upper right")
+        # ax[i][i].legend(loc="upper right")
     
     ax[-1][-1].tick_params(axis="x", direction="in", bottom=True, top=True, labelbottom=True, labeltop=False)
     ax[0][0].set_xticklabels(dict_labels["pullone"]["ticks"], rotation=30)
@@ -277,7 +285,7 @@ def plot_evi_tension(fig, ax, data_dict, dict_labels, keys, evi_chi2="evi"):
             xmin_l, xmax_l = determine_xmin_xmax(fraction[range_], xmin_l, xmax_l)
 
             ax[row][col].hist(fraction, bins=dict_labels["tensionparams"]["bins"], color="red", density=True, histtype="step", label=str(len(fraction[~range_])))
-            ax[row][col].legend()
+            # ax[row][col].legend()
             ax[row][col].axvline(0, color="k", ls="--")
 
             # upper triangular plot
@@ -288,7 +296,7 @@ def plot_evi_tension(fig, ax, data_dict, dict_labels, keys, evi_chi2="evi"):
             xmin_u, xmax_u = determine_xmin_xmax(delta_evi[range_], xmin_u, xmax_u)
 
             ax[col][row].hist(delta_evi, bins=dict_labels["bayesfactor"]["bins"], color="blue", density=True, histtype="step", label=str(len(delta_evi[~range_])) )
-            ax[col][row].legend()
+            # ax[col][row].legend()
             ax[col][row].tick_params(axis="x", bottom=False, top=True, labelbottom=False, labeltop=True)
             ax[col][row].tick_params(axis="y", left=False, right=False, labelleft=False, labelright=True)
             ax[col][row].axvline(0, color="k", ls="--")
@@ -301,14 +309,14 @@ def plot_evi_tension(fig, ax, data_dict, dict_labels, keys, evi_chi2="evi"):
 
     for i, key in enumerate(keys):
         # lower triangular plot
-        ax[i][0].set_ylabel(dict_labels[keys[i]]["label"])
-        ax[-1][i].set_xlabel(dict_labels[keys[i]]["label"])
+        ax[i][0].set_ylabel((dict_labels[keys[i]]["label"]))
+        ax[-1][i].set_xlabel((dict_labels[keys[i]]["label"]))
     
         # upper triangular plot
-        ax[i][-1].set_ylabel(dict_labels[keys[i]]["label"])
+        ax[i][-1].set_ylabel((dict_labels[keys[i]]["label"]))
         ax[i][-1].yaxis.set_label_position("right")
 
-        ax[0][i].set_xlabel(dict_labels[keys[i]]["label"])
+        ax[0][i].set_xlabel((dict_labels[keys[i]]["label"]))
         ax[0][i].xaxis.set_label_position("top")
 
     ax[0][0].set_ylabel("")
@@ -324,7 +332,7 @@ def plot_evi_tension(fig, ax, data_dict, dict_labels, keys, evi_chi2="evi"):
     # ax00.set_yticklabels([])
     # ax00.set_yticks([])
     # ax[0][0].legend([line_g, line_l, line_u], [r"$\frac{\alpha_x-1}{\sigma_x}$", r"$\frac{\alpha_x-\alpha_y}{\sqrt{\sigma_x^2 + \sigma_y^2}}$", r"$\ln\left(\frac{\mathcal{Z}_y}{\mathcal{Z}_x}\right)$"], loc="upper right", bbox_to_anchor=(0, 0.5), fontsize="large", frameon=False)
-    ax[0][0].legend([line_g, line_l, line_u], [r"$\frac{\alpha_x-1}{\sigma_x}$", r"$\frac{\alpha_x-\alpha_y}{\sqrt{\sigma_x^2 + \sigma_y^2}}$", r"$\ln\left(\frac{\mathcal{Z}_y}{\mathcal{Z}_x}\right)$"], bbox_to_anchor=(0, 1.3), loc='lower left', ncol=3, fontsize="large", frameon=False)
+    ax[0][0].legend([line_g, line_l, line_u], [r"$\frac{\alpha_x-1}{\sigma_x}$", r"$\frac{\alpha_x-\alpha_y}{\sqrt{\sigma_x^2 + \sigma_y^2}}$", r"$\ln\left(\frac{\mathcal{Z}_y}{\mathcal{Z}_x}\right)$"], bbox_to_anchor=(0, 2.5), loc='upper left', ncol=3, fontsize="x-large", frameon=False)
 
 
 def plot_deltaalpha_deltasigma(ax, data_dict, dict_labels, keys):
@@ -337,6 +345,8 @@ def plot_deltaalpha_deltasigma(ax, data_dict, dict_labels, keys):
     xmin_3, xmax_3 = 100, -100
     legend=""
     
+    x_n = np.linspace(-4., 4., 1001)
+    
     for row in range(len(keys) - 1):
         ax[row][0].set_ylabel(dict_labels[keys[row + 1]]["label"])
 
@@ -348,7 +358,7 @@ def plot_deltaalpha_deltasigma(ax, data_dict, dict_labels, keys):
         ax[row][0].hist(fraction[range_], bins=dict_labels["deltaalphaoveralpha"]["bins"], color=dict_labels["color"], density=True, histtype="step", label=legend+" "+str(len(fraction[~range_])))
         ax[row][0].axvline(0, color="k", ls="--")
         xmin_1, xmax_1 = determine_xmin_xmax(fraction[range_], xmin_1, xmax_1)
-        ax[row][0].legend()
+        # ax[row][0].legend()
         
         # Delta sigma / sigma
         upper_val = (data_dict[keys[row + 1]]["sigma"] - data_dict[keys[0]]["sigma"])
@@ -358,7 +368,7 @@ def plot_deltaalpha_deltasigma(ax, data_dict, dict_labels, keys):
         ax[row][1].hist(fraction[range_], bins=dict_labels["deltasigmaoversigma"]["bins"], color=dict_labels["color"], density=True, histtype="step", label=str(len(fraction[~range_])))
         ax[row][1].axvline(0, color="k", ls="--")
         xmin_2, xmax_2 = determine_xmin_xmax(fraction[range_], xmin_2, xmax_2)
-        ax[row][1].legend()
+        # ax[row][1].legend()
         
         # Delta alpha / sqrt(sigma1**2 + sig2 **2) tension
         upper_val = (data_dict[keys[row + 1]]["alphamed"] - data_dict[keys[0]]["alphamed"])
@@ -369,8 +379,20 @@ def plot_deltaalpha_deltasigma(ax, data_dict, dict_labels, keys):
         ax[row][2].hist(fraction[range_], bins=dict_labels["deltaalphaoveravgsigma"]["bins"], color=dict_labels["color"], density=True, histtype="step", label=str(len(fraction[~range_])))
         ax[row][2].axvline(0, color="k", ls="--")
         xmin_3, xmax_3 = determine_xmin_xmax(fraction[range_], xmin_3, xmax_3)
-        ax[row][2].legend()
+        # ax[row][2].legend()
     
+        # (alpha - 1) / sigma
+        upper_val = (data_dict[keys[row + 1]]["alphamed"] - 1)
+        lower_val = data_dict[keys[row + 1]]["sigma"]
+        fraction = upper_val / lower_val
+        range_ = (fraction < dict_labels["alphamoneoversigma"]["maxval"]) & (fraction > dict_labels["alphamoneoversigma"]["minval"])
+        
+        ax[row][3].hist(fraction[range_], bins=dict_labels["alphamoneoversigma"]["bins"], color=dict_labels["color"], density=True, histtype="step", label=str(len(fraction[~range_])))
+        ax[row][3].plot(x_n, gauss(x_n, 0, 1), ls="--", color="k")
+        # xmin_3, xmax_3 = determine_xmin_xmax(fraction[range_], xmin_3, xmax_3)
+        # ax[row][3].legend()
+    
+
 
     ax[-1][0].set_xticks(dict_labels["deltaalphaoveralpha"]["ticks"])
     ax[-1][0].set_xticklabels(dict_labels["deltaalphaoveralpha"]["ticks"], rotation=30)
@@ -380,14 +402,19 @@ def plot_deltaalpha_deltasigma(ax, data_dict, dict_labels, keys):
     
     ax[-1][2].set_xticks(dict_labels["deltaalphaoveravgsigma"]["ticks"])
     ax[-1][2].set_xticklabels(dict_labels["deltaalphaoveravgsigma"]["ticks"], rotation=30)
+   
+    ax[-1][3].set_xticks(dict_labels["alphamoneoversigma"]["ticks"])
+    ax[-1][3].set_xticklabels(dict_labels["alphamoneoversigma"]["ticks"], rotation=30)
 
-    ax[-1][0].set_xlabel(rf"($\alpha_y$-" + dict_labels[keys[0]]["alphamed"]+")/" + dict_labels[keys[0]]["alphamed"])
-    ax[-1][1].set_xlabel(rf"($\sigma_y$-" + dict_labels[keys[0]]["sigma"]+")/" + dict_labels[keys[0]]["sigma"])
-    ax[-1][2].set_xlabel(rf"($\alpha_y$-" + dict_labels[keys[0]]["alphamed"]+")/(" + r"$\sigma_y^2 + $" + dict_labels[keys[0]]["sigma"] + r"$^2)^{0.5}$")
+    ax[-1][0].set_xlabel("$\\frac{{\\alpha_y}}{{{lower}}} - 1$".format(lower=str(dict_labels[keys[0]]["alphamed"])), fontsize=14)
+    ax[-1][1].set_xlabel("$\\frac{{\\sigma_y}}{{{lower}}} - 1$".format(lower=dict_labels[keys[0]]["sigma"]), fontsize=14)
+    ax[-1][2].set_xlabel("$\\frac{{\\alpha_y-{upper} }}{{\\sqrt{{\\sigma_y^2 + {lower}^2}} }}$".format(upper=dict_labels[keys[0]]["alphamed"], lower=dict_labels[keys[0]]["sigma"]), fontsize = 14)
+    ax[-1][3].set_xlabel("$\\frac{\\alpha_y-1}{\\sigma_y}$", fontsize = 14)
 
-    ax[0][0].set_xlim([0.99 * xmin_1, xmax_1 * 1.01])
-    ax[0][1].set_xlim([0.99 * xmin_2, xmax_2 * 1.01])
-    ax[0][2].set_xlim([0.99 * xmin_3, xmax_3 * 1.01])
+    ax[0][0].set_xlim([1.01 * xmin_1, xmax_1 * 1.01])
+    ax[0][1].set_xlim([1.01 * xmin_2, xmax_2 * 1.01])
+    ax[0][2].set_xlim([1.01 * xmin_3, xmax_3 * 1.01])
+    ax[0][3].set_xlim([dict_labels["alphamoneoversigma"]["minval"] * 1.02, dict_labels["alphamoneoversigma"]["maxval"] * 1.02])
     
     return [xmin_1, xmin_2, xmin_3], [xmax_1, xmax_2, xmax_3]
     
@@ -401,7 +428,8 @@ def plot_comparison(dict_labels, keys, outliers=False):
     else:
         fig1, ax1 = my_corner(size=len(keys))
     fig2, ax2 = my_box(rows=len(keys), cols=len(keys))
-    fig4, ax4 = my_box(rows=(len(keys) - 1), cols=3, sharex="col", sharey="col", figsize=(5, len(keys)*4.4/4.))
+    # fig4, ax4 = my_box(rows=(len(keys) - 1), cols=4, sharex="col", sharey="col", figsize=(5, len(keys)*4.4/4.))
+    fig4, ax4 = my_box(rows=(len(keys) - 1), cols=4, sharex="col", sharey="col", figsize=(5, 4))
 
     data_dict = {}
 
@@ -438,7 +466,256 @@ def plot_comparison(dict_labels, keys, outliers=False):
     fig4.tight_layout()
     fig4.savefig(dict_labels['filename']+"_corner4.pdf", bbox_inches='tight')
     
+
+def plot_corner_2outliers(dict_labels, keys):
+    from mycorner_lib import my_corner, my_corner_outliers_2sides
+
+    size = len(keys)
+    fig, ax = my_corner_outliers_2sides(size=size)
+
+
+    for row in range(1, len(keys)):
+        ax[row][0].set_yticks(dict_labels["alphamed"]["ticks"])
+        ax[row][0].set_yticklabels(dict_labels["alphamed"]["ticks"])
+   
+   
+    for col in range(len(keys)):
+        if col == 0:
+            outlier = 1
+        else:
+            outlier = 2
+
+        tcol = col + outlier
+        ax[-1][tcol].set_xticks(dict_labels["alphamed"]["ticks"])
+        ax[-1][tcol].set_xticklabels(dict_labels["alphamed"]["ticks"], rotation=30)
+
+    for i, key in enumerate(keys):
+        if i == 0:
+            outlier = 1
+        else:
+            outlier = 2
+        ti = i + outlier
+        ax[i][0].set_ylabel("${0}$".format(dict_labels[keys[i]]["alphamed"]))
+        ax[-1][ti].set_xlabel("${0}$".format(dict_labels[keys[i]]["alphamed"]))
     
+    ax[0][0].set_ylabel("")
+
+
+    data_dict = {}
+
+    for i, key in enumerate(keys):
+        dict_ = dict_labels[key]
+        
+        # alpha_b, chi2, evi = read_chi2_alpha_evi(dict_["filename"], "", n=1)
+        alpha_a, sigma_, alpha_m, sigma_nl = read_data_mystats(dict_["filename"], endcffile=dict_labels["endcffile"], begcffile=dict_labels["begcffile"])
+        # alpha_a = alpha_m = sigma_ = sigma_nl = np.linspace(0.8, 1.3, 100)
+        temp_dict = {"alpha":alpha_a, "alphamed":alpha_m, "sigma":sigma_,  "sigma_nl":sigma_nl}
+        data_dict[key] = temp_dict
+
+
+    xmin = 100
+    xmax = 0
+    min_alpha = 0.9
+    max_alpha = 1.1
+    outlier = 1
+
+    for i, key in enumerate(keys):
+        range_ = (data_dict[key]["alphamed"] > min_alpha) & (data_dict[key]["alphamed"] < max_alpha)
+        print("There are  values above 1.1 or below 0.9", data_dict[key]["alphamed"][~range_])
+        xmin, xmax = determine_xmin_xmax(data_dict[key]["alphamed"][range_], xmin, xmax)
+    
+    print(xmin, xmax)
+    # xmin = 0 
+    # xmax = 2
+    for i, key in enumerate(keys):
+        if i == 0:
+            outlier = 1
+        else:
+            outlier = 2
+        ti = i + outlier
+        # ax[i][ti].text(1, 1, dict_labels[keys[i]]["label"] + " " + dict_labels[keys[i]]["label"])  # this is for debugging
+        ax[i][ti].hist(data_dict[key]["alphamed"], bins=dict_labels["alphamed"]["bins"], density=True, histtype="step", color="blue")
+        ax[i][ti].axvline(1, color="grey", ls="--")
+        ax[i][ti].set_xlim([0.99 * xmin, 1.01 * xmax])
+
+
+    for row, key in enumerate(keys):
+        for col in range(row):
+            if col == 0:
+                outlier = 1
+            else:
+                outlier = 2
+            
+            tcol = col + outlier
+            # ax[row][tcol].text(0.9, 1, dict_labels[keys[col]]["label"] + " " + dict_labels[keys[row]]["label"])  # this is for debugging
+            ax[row][tcol].scatter(data_dict[keys[col]]["alphamed"], data_dict[keys[row]]["alphamed"], s=1, color="blue")
+            ax[row][tcol].plot([xmin, xmax], [xmin, xmax], color="k", ls="--")
+            ax[row][tcol].set_xlim([0.99 * xmin, 1.01 * xmax])
+            ax[row][tcol].set_ylim([0.99 * xmin, 1.01 * xmax])
+
+
+    range_ = (data_dict[keys[0]]["alphamed"] >= 0.8) & (data_dict[keys[0]]["alphamed"] <= 0.9)
+    print(np.min(data_dict[keys[0]]["alphamed"][range_]), np.max(data_dict[keys[0]]["alphamed"][range_]))
+
+    range_ = (data_dict[keys[0]]["alphamed"] >= 1.1) & (data_dict[keys[0]]["alphamed"] <= 1.2)
+    print(np.min(data_dict[keys[0]]["alphamed"][range_]), np.max(data_dict[keys[0]]["alphamed"][range_]))
+    
+    ax[0][0].hist(data_dict[keys[0]]["alphamed"], bins=dict_labels["alphamed"]["bins"], density=True, histtype="step", color="blue")
+    ax[0][2].hist(data_dict[keys[0]]["alphamed"], bins=dict_labels["alphamed"]["bins"], density=True, histtype="step", color="blue")
+    ax[0][0].set_xlim([0.79, 0.90])
+    ax[0][2].set_xlim([1.14, 1.20])
+
+
+    for row in range(len(keys) - 1):
+        ax[row + 1][0].set_xlim([0.79, 0.90])
+        ax[row + 1][2].set_xlim([1.14, 1.20])
+
+        ax[row + 1][0].scatter(data_dict[keys[0]]["alphamed"], data_dict[keys[row + 1]]["alphamed"], s=1, color="blue")
+        ax[row + 1][2].scatter(data_dict[keys[0]]["alphamed"], data_dict[keys[row + 1]]["alphamed"], s=1, color="blue")
+    
+        ax[-1][0].set_xticks([0.85])
+        ax[-1][2].set_xticks([1.17])
+        ax[-1][0].set_xticklabels([0.85], rotation=30)
+        ax[-1][2].set_xticklabels([1.17], rotation=30)
+        # print(ax[-1][0].get_xticks())
+    
+    
+
+    fig.tight_layout()
+    fig.savefig(dict_labels['filename']+"_corner0.pdf", bbox_inches='tight')
+    
+
+def plot_dampA1_dampA2(dict_labels, dict_labels2, keys="test", outpath="test"):
+    fig, ax = pt.subplots(2, 2, figsize=(5, 4), gridspec_kw={"hspace":0, "wspace":0})
+
+    ### remove all ticks and tick labels
+    for row in range(len(keys)):
+        for col in range(len(keys)):
+            ax[col][row].set_yticklabels([])
+            ax[col][row].set_yticks([])
+            ax[col][row].set_xticklabels([])
+            ax[col][row].set_xticks([])
+
+    ### Get the data
+    data_dict = {}
+    for i, key in enumerate(keys):
+        dict_ = dict_labels[key]
+        alpha_a, sigma_, alpha_m, _ = read_data_mystats(dict_["filename"], endcffile=dict_labels["endcffile"], begcffile=dict_labels["begcffile"])
+        temp_dict = {"alpha_a":alpha_a, "alphamed":alpha_m, "sigma":sigma_}
+        data_dict[key] = temp_dict
+
+    data_dict2 = {}
+    for i, key in enumerate(keys):
+        dict_2 = dict_labels2[key]
+        alpha_a, sigma_, alpha_m, _ = read_data_mystats(dict_2["filename"], endcffile=dict_labels2["endcffile"], begcffile=dict_labels2["begcffile"])
+        temp_dict2 = {"alpha_a":alpha_a, "alphamed":alpha_m, "sigma":sigma_}
+        data_dict2[key] = temp_dict2
+
+    ### the first row plots
+    x_n = np.linspace(-4., 4., 1001)
+    for i in range(len(keys)):
+
+        fraction_ = (data_dict[keys[i]]["alphamed"] - 1) / data_dict[keys[i]]["sigma"]
+        range_ = (fraction_ > dict_labels["pullone"]["maxval"]) | (fraction_ < dict_labels["pullone"]["minval"])
+        ax[0][i].hist(fraction_, color=dict_labels["color"], density=True, histtype="step", bins=dict_labels["pullone"]["bins"], label=f"{len(fraction_[range_])}")# {round(np.mean(fraction_[~range_]), 5)}")
+        
+        
+        fraction_2 = (data_dict2[keys[i]]["alphamed"] - 1) / data_dict2[keys[i]]["sigma"]
+        range_2 = (fraction_2 > dict_labels2["pullone"]["maxval"]) | (fraction_2 < dict_labels2["pullone"]["minval"])
+        ax[0][i].hist(fraction_2, color=dict_labels2["color"], density=True, histtype="step", bins=dict_labels2["pullone"]["bins"], label=f"{len(fraction_2[range_2])}")# {round(np.mean(fraction_2[~range_2]), 5)}")
+        
+
+        ax[0][i].plot(x_n, gauss(x_n, 0, 1), ls="--", color="k")
+        ax[0][i].set_xticks(dict_labels["pullone"]["ticks"])
+        ax[0][i].set_xticklabels(dict_labels["pullone"]["ticks"], rotation=30)
+        
+        # ax[0][i].legend(loc="upper right")
+
+
+    # the second row of plots
+    upper_val =  data_dict[keys[0]]["sigma"] - data_dict[keys[1]]["sigma"]
+    lower_val = (data_dict[keys[0]]["sigma"] + data_dict[keys[1]]["sigma"]) / 2.
+    fraction_ = upper_val / lower_val
+    range_ = (fraction_ > dict_labels["deltasigmaoversigma"]["maxval"]) | (fraction_ < dict_labels["deltasigmaoversigma"]["minval"])
+
+    upper_val2 =  data_dict2[keys[0]]["sigma"] - data_dict2[keys[1]]["sigma"]
+    lower_val2 = (data_dict2[keys[0]]["sigma"] + data_dict2[keys[1]]["sigma"]) / 2.
+    fraction_2 = upper_val2 / lower_val2
+    range_2 = (fraction_2 > dict_labels2["deltasigmaoversigma"]["maxval"]) | (fraction_2 < dict_labels2["deltasigmaoversigma"]["minval"])
+    
+
+    ax[1][1].hist(fraction_  , color=dict_labels["color"], density=True, histtype="step", bins=dict_labels["deltasigmaoversigma"]["bins"],  label=f"{len(fraction_[range_])}")# {round(np.mean(fraction_[~range_]), 5)}")
+    ax[1][1].hist(fraction_2, color=dict_labels2["color"], density=True, histtype="step", bins=dict_labels2["deltasigmaoversigma"]["bins"], label=f"{len(fraction_2[range_2])}")# {round(np.mean(fraction_2[~range_2]), 5)}")
+    ax[1][1].axvline(0, color="k", ls="--")
+
+    ax[1][1].set_xlim([dict_labels["deltasigmaoversigma"]["minval"], dict_labels["deltasigmaoversigma"]["maxval"]])
+    ax[1][1].set_xticks(dict_labels["deltasigmaoversigma"]["ticks"])
+    ax[1][1].set_xticklabels(dict_labels["deltasigmaoversigma"]["ticks"], rotation=30)
+
+
+    # the lower diagonal plots
+    upper_val =         data_dict[keys[0]]["alphamed"] - data_dict[keys[1]]["alphamed"]
+    lower_val = np.sqrt(data_dict[keys[0]]["sigma"]**2 + data_dict[keys[1]]["sigma"]**2)
+    fraction_ = upper_val / lower_val
+    range_ = (fraction_ > dict_labels["deltaalphaoveravgsigma"]["maxval"]) | (fraction_ < dict_labels["deltaalphaoveravgsigma"]["minval"])
+    
+    upper_val2 =         data_dict2[keys[0]]["alphamed"] - data_dict2[keys[1]]["alphamed"]
+    lower_val2 = np.sqrt(data_dict2[keys[0]]["sigma"]**2 + data_dict2[keys[1]]["sigma"]**2)
+    fraction_2 = upper_val2 / lower_val2
+    range_2 = (fraction_2 > dict_labels2["deltaalphaoveravgsigma"]["maxval"]) | (fraction_2 < dict_labels2["deltaalphaoveravgsigma"]["minval"])
+    
+    ax[1][0].hist(fraction_,  color=dict_labels["color"], density=True, histtype="step",  bins=dict_labels["deltaalphaoveravgsigma"]["bins"],  label=f"{len(fraction_[range_])}")# {round(np.mean(fraction_[~range_]), 5)}")
+    ax[1][0].hist(fraction_2, color=dict_labels2["color"], density=True, histtype="step", bins=dict_labels2["deltaalphaoveravgsigma"]["bins"], label=f"{len(fraction_2[range_2])}")# {round(np.mean(fraction_2[~range_2]), 5)}")
+    
+    ax[1][0].axvline(0, color="k", ls="--")
+
+    ax[1][0].set_xlim([dict_labels["deltaalphaoveravgsigma"]["minval"], dict_labels["deltaalphaoveravgsigma"]["maxval"]])
+    ax[1][0].set_xticks(dict_labels["deltaalphaoveravgsigma"]["ticks"])
+    ax[1][0].set_xticklabels(dict_labels["deltaalphaoveravgsigma"]["ticks"], rotation=30)
+    
+
+    ax[0][0].set_xlabel(r"$(\alpha_1 - 1)/\sigma_1$")
+    ax[0][1].set_xlabel(r"$(\alpha_2 - 1)/\sigma_2$")
+    ax[0][0].xaxis.set_label_position("top")
+    ax[0][1].xaxis.set_label_position("top")
+
+    ax[1][0].set_xlabel(r"$(\alpha_1 - \alpha_2)/(\sqrt{\sigma_1^2 + \sigma_2^2})$")
+    ax[1][1].set_xlabel(r"$(\sigma_1 - \sigma_2)/[0.5\times(\sigma_1 + \sigma_2)]$")
+    
+    # ax[1][0].legend()
+    # ax[1][1].legend()
+
+    ax[0][0].tick_params(axis="x", direction="out", bottom=False, top=True, labelbottom=False, labeltop=True)
+    ax[0][1].tick_params(axis="x", direction="out", bottom=False, top=True, labelbottom=False, labeltop=True)
+    ax[0][1].tick_params(axis="y", left=False, right=False, labelleft=False, labelright=False)
+    ax[1][1].tick_params(axis="x", direction="out", bottom=True, top=False, labelbottom=True, labeltop=False)
+
+        
+    fig.tight_layout()    
+    fig.savefig(outpath + "/A_B_DAMP1_DAMP2.pdf", bbox_inches='tight')
+
+
+    #### second plot
+    fig, ax = pt.subplots(2, 2, figsize=(5, 4), gridspec_kw={"hspace":0, "wspace":0})
+
+    ax[0][0].hist( 2 * (data_dict[keys[0]]["alphamed"] - data_dict2[keys[0]]["alphamed"]) / (data_dict[keys[0]]["alphamed"] + data_dict2[keys[0]]["alphamed"]), bins=np.linspace(-0.01, 0.01, 51), color="green", density=True, histtype="step", label="a=1: par-cg")
+    ax[0][0].hist( 2 * (data_dict[keys[1]]["alphamed"] - data_dict2[keys[1]]["alphamed"]) / (data_dict[keys[1]]["alphamed"] + data_dict2[keys[1]]["alphamed"]), bins=np.linspace(-0.01, 0.01, 51), color="red", density=True, histtype="step", label="a=2: par-cg")
+
+    ax[0][1].hist(data_dict[keys[0]]["sigma"] - data_dict2[keys[0]]["sigma"], bins=np.linspace(-0.002, 0.002, 51), color="green", density=True, histtype="step")
+    ax[0][1].hist(data_dict[keys[1]]["sigma"] - data_dict2[keys[1]]["sigma"], bins=np.linspace(-0.002, 0.002, 51), color="red", density=True, histtype="step")
+    
+    ax[1][0].hist(data_dict[keys[0]]["alphamed"] - data_dict[keys[1]]["alphamed"], bins=np.linspace(-0.01, 0.01, 101), color=dict_labels[keys[0]]["color"], density=True, histtype="step", label="par")
+    ax[1][0].hist(data_dict2[keys[0]]["alphamed"] - data_dict2[keys[1]]["alphamed"], bins=np.linspace(-0.01, 0.01, 101), color=dict_labels2[keys[0]]["color"], density=True, histtype="step", label="cg")
+    ax[1][0].set_xlim([-0.007, 0.007])    
+
+    ax[1][1].hist(data_dict[keys[0]]["sigma"] - data_dict[keys[1]]["sigma"], bins=np.linspace(-0.002, 0.002, 101), color=dict_labels[keys[0]]["color"], density=True, histtype="step")
+    ax[1][1].hist(data_dict2[keys[0]]["sigma"] - data_dict2[keys[1]]["sigma"], bins=np.linspace(-0.002, 0.002, 101), color=dict_labels2[keys[0]]["color"], density=True, histtype="step")
+    ax[1][1].set_xlim([-0.002, 0.002])    
+    # ax[1][0].legend()
+    
+    fig.tight_layout()    
+    fig.savefig(outpath + "/A_B_DAMP1_DAMP2_2.pdf", bbox_inches='tight')
+
 def plot_comparison_UL(dict_labels_L, dict_labels_U, keys, figname="test", outliers=False):
     ### declare figures    
     from mycorner_lib import my_box_outliers, my_box
@@ -447,7 +724,9 @@ def plot_comparison_UL(dict_labels_L, dict_labels_U, keys, figname="test", outli
     else:
         fig, ax = my_box(rows=len(keys), cols=len(keys))
     
-    fig1, ax1 = my_box(rows=len(keys) - 1, cols=3, sharex="col", sharey="col", figsize=(5, len(keys)*4.4/4.))
+    # fig1, ax1 = my_box(rows=len(keys) - 1, cols=4, sharex="col", sharey="col", figsize=(5, len(keys)*4.4/4.))
+    fig1, ax1 = my_box(rows=len(keys) - 1, cols=4, sharex="col", sharey="col", figsize=(5, 2))
+    # fig1, ax1 = my_box(rows=len(keys) - 1, cols=4, sharex="col", sharey="col", figsize=(5, 4))
 
 
     ### Obtain data
@@ -494,15 +773,17 @@ def plot_comparison_UL(dict_labels_L, dict_labels_U, keys, figname="test", outli
     line_u = Line2D([0], [0], marker='o', color='w', markerfacecolor=dict_labels_U["color"], markersize=5)
     # ax1[0][0].legend([line_l, line_u], [dict_labels_L["label"], dict_labels_U["label"]], loc="best", bbox_to_anchor=(0.5, 0.5), fontsize="small", frameon=False)
 
-    ax1[0][0].set_xlim([0.99 * np.min([xmin_L[0], xmin_U[0]]), np.max([xmax_L[0], xmax_U[0]]) * 1.01])
-    ax1[0][1].set_xlim([0.99 * np.min([xmin_L[1], xmin_U[1]]), np.max([xmax_L[1], xmax_U[1]]) * 1.01])
-    ax1[0][2].set_xlim([0.99 * np.min([xmin_L[2], xmin_U[2]]), np.max([xmax_L[2], xmax_U[2]]) * 1.01])
+    ax1[0][0].set_xlim([1.01 * np.min([xmin_L[0], xmin_U[0]]), np.max([xmax_L[0], xmax_U[0]]) * 1.01])
+    ax1[0][1].set_xlim([1.01 * np.min([xmin_L[1], xmin_U[1]]), np.max([xmax_L[1], xmax_U[1]]) * 1.01])
+    ax1[0][2].set_xlim([1.01 * np.min([xmin_L[2], xmin_U[2]]), np.max([xmax_L[2], xmax_U[2]]) * 1.01])
     
     ###
-    fig2, ax2 = my_box(rows=len(keys), cols=len(keys), figsize=None)
+    # fig2, ax2 = my_box(rows=len(keys), cols=len(keys), figsize=None)
+    fig2, ax2 = my_box(rows=len(keys), cols=len(keys), figsize=(5, 4))
     plot_evi_tension(fig2, ax2, data_dict_U, dict_labels_U, keys)
 
-    fig3, ax3 = my_box(rows=len(keys), cols=len(keys), figsize=None)
+    # fig3, ax3 = my_box(rows=len(keys), cols=len(keys), figsize=None)
+    fig3, ax3 = my_box(rows=len(keys), cols=len(keys), figsize=(5, 4))
     plot_evi_tension(fig3, ax3, data_dict_L, dict_labels_L, keys)
 
 
@@ -535,11 +816,11 @@ def plot_rec_comparison(dict_labels, keys, outliers=False):
     for i, key in enumerate(keys):
         dict_ = dict_labels[key]
         
-        alpha_b, chi2, evi = read_chi2_alpha_evi(dict_["filename"], "", n=1)
-        alpha_a, sigma_, alpha_m = read_data_mystats(dict_["filename"], endcffile=dict_labels["endcffile"], begcffile=dict_labels["begcffile"])
+        # alpha_b, chi2, evi = read_chi2_alpha_evi(dict_["filename"], "", n=1)
+        alpha_a, sigma_, alpha_m, _ = read_data_mystats(dict_["filename"], endcffile=dict_labels["endcffile"], begcffile=dict_labels["begcffile"])
         print(np.min((alpha_m - 1) / sigma_), np.max((alpha_m - 1) / sigma_))
         ax.hist((alpha_m - 1) / sigma_, histtype="step", color=colors[i], label=dict_["label"], density=True, bins=bins)
-        ax.set_xlabel(r"($\alpha_\mathrm{med}-1)/\sigma_\alpha$")
+        ax.set_xlabel("$\\frac{\\alpha-1}{\\sigma_\\alpha}$", fontsize=14)
         # ax.axvline(0, ls="--", color="k")
     
     x_n = np.linspace(-4.5, 4.5, 1001)
@@ -547,7 +828,7 @@ def plot_rec_comparison(dict_labels, keys, outliers=False):
     # print(bins[:-1] + 0.09)
     ax.legend()
     fig.tight_layout()
-    fig.savefig(dict_labels['filename']+"_corner5.pdf")
+    fig.savefig(dict_labels['filename']+".pdf", bbox_inches='tight')
 
 
 def get_best_fit_3(filepath):
@@ -561,35 +842,26 @@ def best_fit_threepanels(outpath="test"):
     fig, ax = pt.subplots(3, 1, figsize=(5, 4), gridspec_kw={"hspace":0, "wspace":0}, sharex=True)
 
     sP, cf_PA_nw, std_nw = np.loadtxt("/scratch/variu/phd_fitOut/patchy_cmass_subset/avg_PATCHY_BOX/avg_100_patchy_box_void_nw_pre.2pcf", usecols=(0, 1, 2), unpack=True)
-    sP, cf_PA, std = np.loadtxt("/scratch/variu/phd_fitOut/patchy_cmass_subset/avg_PATCHY_BOX/avg_100_patchy_box_void_pre.2pcf", usecols=(0, 1, 2), unpack=True)
+    sP, cf_PA,    std    = np.loadtxt("/scratch/variu/phd_fitOut/patchy_cmass_subset/avg_PATCHY_BOX/avg_100_patchy_box_void_pre.2pcf"   , usecols=(0, 1, 2), unpack=True)
 
-
-    # spn, cf_p_nw = get_best_fit_3(path + "/parab_60_150_nw_fast/BAOfit_avg_100_patchy_box_void_nw_pre.2pcf_best.dat")
-    # spb, cf_p = get_best_fit_3(path + "/parab_60_150_fast/BAOfit_avg_100_patchy_box_void_pre.2pcf_best.dat")
-    spb, cf_p, cf_p_nw = get_best_fit_3(path + "/parab_60_150_fast/BAOfit_avg_100_patchy_box_void_pre.2pcf_best_nw.dat")
-  
-    # scn, cf_CG_nw = get_best_fit_3(path + "/stitched_16R_G2048_50_G512_2000_nw_CG/BAOfit_avg_100_patchy_box_void_nw_pre.2pcf_best.dat")
-    # scb, cf_CG = get_best_fit_3(path + "/stitched_16R_G2048_50_G512_2000_CG/BAOfit_avg_100_patchy_box_void_pre.2pcf_best.dat")
+    spb, cf_p,  cf_p_nw  = get_best_fit_3(path + "/parab_60_150_fast/BAOfit_avg_100_patchy_box_void_pre.2pcf_best_nw.dat")  
     scb, cf_CG, cf_CG_nw = get_best_fit_3(path + "/stitched_16R_G2048_50_G512_2000_CG/BAOfit_avg_100_patchy_box_void_pre.2pcf_best_nw.dat")
-
-    # ssn, cf_SK_nw = get_best_fit_3(path + "/stitched_G2048_50_G512_2000_nw/BAOfit_avg_100_patchy_box_void_nw_pre.2pcf_best.dat")
-    # ssb, cf_SK = get_best_fit_3(path + "/stitched_G2048_50_G512_2000/BAOfit_avg_100_patchy_box_void_pre.2pcf_best.dat")
     ssb, cf_SK, cf_SK_nw = get_best_fit_3(path + "/stitched_G2048_50_G512_2000/BAOfit_avg_100_patchy_box_void_pre.2pcf_best_nw.dat")
 
     ax[0].errorbar(sP, sP * sP * cf_PA, yerr=sP * sP * std, label="PATCHY", color="k", ls="", marker=".")
-    ax[0].plot(spb, spb * spb * cf_p, label="PAR", color="red", ls="--")
-    ax[0].plot(scb, scb * scb * cf_CG, label="CG", color="blue", ls=":")
-    ax[0].plot(ssb, ssb * ssb * cf_SK, label="SK", color="orange", ls=":")
+    ax[0].plot(spb, spb * spb * cf_p, label="PAR$_\\mathrm{{G}}$", color="red", ls="--")
+    ax[0].plot(scb, scb * scb * cf_CG, label="CG$_\\mathrm{{B}}$", color="blue", ls=":")
+    ax[0].plot(ssb, ssb * ssb * cf_SK, label="SK$_\\mathrm{{B}}$", color="orange", ls=":")
 
     ax[1].errorbar(sP, sP * sP * (cf_PA - cf_PA_nw), yerr=sP * sP * np.sqrt(std**2 + std_nw**2), label="PATCHY", color="k", ls="", marker=".")
-    ax[1].plot(spb, spb * spb * (cf_p - cf_p_nw), label="PAR", color="red", ls="--")
-    ax[1].plot(scb, scb * scb * (cf_CG - cf_CG_nw), label="CG", color="blue", ls=":")
-    ax[1].plot(ssb, ssb * ssb * (cf_SK - cf_SK_nw), label="SK", color="orange", ls=":")
+    ax[1].plot(spb, spb * spb * (cf_p - cf_p_nw), label="PAR$_\\mathrm{{G}}$", color="red", ls="--")
+    ax[1].plot(scb, scb * scb * (cf_CG - cf_CG_nw), label="CG$_\\mathrm{{B}}$", color="blue", ls=":")
+    ax[1].plot(ssb, ssb * ssb * (cf_SK - cf_SK_nw), label="SK$_\\mathrm{{B}}$", color="orange", ls=":")
 
     ax[2].errorbar(sP, sP * sP * (cf_PA_nw), yerr=sP * sP * std_nw, label="PATCHY", color="k",  ls="", marker=".")
-    ax[2].plot(spb, spb * spb * (cf_p_nw), label="PAR", color="red", ls="--")
-    ax[2].plot(scb, scb * scb * (cf_CG_nw), label="CG", color="blue", ls=":")
-    ax[2].plot(ssb, ssb * ssb * (cf_SK_nw), label="SK", color="orange", ls=":")
+    ax[2].plot(spb, spb * spb * (cf_p_nw), label="PAR$_\\mathrm{{G}}$", color="red", ls="--")
+    ax[2].plot(scb, scb * scb * (cf_CG_nw), label="CG$_\\mathrm{{B}}$", color="blue", ls=":")
+    ax[2].plot(ssb, ssb * ssb * (cf_SK_nw), label="SK$_\\mathrm{{B}}$", color="orange", ls=":")
 
     ax[0].set_ylim([-13, 22])
     ax[1].set_ylim([-13, 22])
@@ -609,14 +881,20 @@ def best_fit_threepanels(outpath="test"):
     fig.savefig(outpath + "A_B_CG_SK_PAR_best_fit.pdf", bbox_inches='tight')
 
 def best_fit_onepanel(outpath="test"):
-    fig, ax = pt.subplots(figsize=(5, 4))
-    # data_file = "/scratch/variu/clustering/patchy_cmass_subset/box1/redshift_recon/vv2pcf/avg_16R_500_recon.2pcf"
-    # cgfile = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/redshift_recon/vv2pcf_CG/avg_fit/stitched_16R_G2048_50_G512_2000_CG_60_150/BAOfit_avg_16R_500_recon.2pcf_best_nw.dat"
-    # skfile = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/redshift_recon/vv2pcf/avg_fit/stitched_G2048_50_G512_2000_60_150/BAOfit_avg_16R_500_recon.2pcf_best_nw.dat"
-    
+
     data_file = "/scratch/variu/clustering/patchy_cmass_subset/box1/real/overlapping/vhxcf/16R/avg_16R_vhxcf.xcf"
-    cgfile = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf_CG/avg_fit/stitched_16R_G2048_50_G512_2000_CG_60_150/BAOfit_avg_16R_vhxcf.xcf_best_nw.dat"
-    skfile = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf/avg_fit/range_test/avg_2001_60_150/BAOfit_avg_16R_vhxcf.xcf_best_nw.dat"
+    cgfile    = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf_CG/avg_fit/stitched_16R_G2048_50_G512_2000_CG_60_150/BAOfit_avg_16R_vhxcf.xcf_best_nw.dat"
+    skfile    = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf/avg_fit/range_test/avg_2001_60_150/BAOfit_avg_16R_vhxcf.xcf_best_nw.dat"
+    best_fit_onepanel_aux(data_file=data_file, cgfile=cgfile, skfile=skfile, ylim=[-25, 18], xlim=[50, 160], outfile=outpath + "X_B_CG_SK_best_fit.pdf")
+    
+    data_file = "/scratch/variu/clustering/patchy_cmass_subset/box1/redshift_recon/vv2pcf/avg_16R_500_recon.2pcf"
+    cgfile    = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/redshift_recon/vv2pcf_CG/avg_fit/stitched_16R_G2048_50_G512_2000_CG_60_150/BAOfit_avg_16R_500_recon.2pcf_best_nw.dat"
+    skfile    = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/redshift_recon/vv2pcf/avg_fit/stitched_G2048_50_G512_2000_60_150/BAOfit_avg_16R_500_recon.2pcf_best_nw.dat"
+    best_fit_onepanel_aux(data_file=data_file, cgfile=cgfile, skfile=skfile, ylim=[-17, 35], xlim=[50, 160], outfile=outpath + "A_B_CG_SK_best_fit_recon.pdf")
+    
+
+def best_fit_onepanel_aux(data_file="test", cgfile="test", skfile="test", ylim=None, xlim=None, outfile="test"):
+    fig, ax = pt.subplots(figsize=(5, 4))
     
     sa, cfa, stda = np.loadtxt(data_file, usecols=(0,1,2), unpack=True)
     sb, cfb, cfb_nw = np.loadtxt(cgfile, usecols=(0,1,2), unpack=True)
@@ -624,36 +902,31 @@ def best_fit_onepanel(outpath="test"):
     
     ax.errorbar(sa, sa*sa*cfa, yerr=sa*sa*stda, label="PATCHY", color="k", ls="", marker=".")
     
-    ax.plot(sb, sb*sb*cfb, label="CG", color="blue", ls="--")
+    ax.plot(sb, sb*sb*cfb, label="CG$_\\mathrm{{B}}$", color="blue", ls="--")
     ax.plot(sb, sb*sb*cfb_nw, color="blue", ls=":")
     
-    ax.plot(sk, sk*sk*cfk, label="SK", color="orange", ls="--")
+    ax.plot(sk, sk*sk*cfk, label="SK$_\\mathrm{{B}}$", color="orange", ls="--")
     ax.plot(sk, sk*sk*cfk_nw, color="orange", ls=":")
     
     ax.legend()
     
-    # ax.set_ylim([-17, 35])
-    # ax.set_xlim([50, 160])
+    ax.set_ylim(ylim)
+    ax.set_xlim(xlim)
 
-
-    ax.set_ylim([-25, 18])
-    ax.set_xlim([50, 160])
-
-    ax.set_xlabel(r"s[$h^{-1}$Mpc]")
-    
+    ax.set_xlabel(r"s[$h^{-1}$Mpc]")    
     ax.set_ylabel(r"s$^2\xi(s)$  ")
     
     fig.tight_layout()
-    fig.savefig(outpath + "X_B_CG_SK_best_fit.pdf", bbox_inches='tight')
-    # fig.savefig(outpath + "A_B_CG_SK_best_fit_recon.pdf", bbox_inches='tight')
+    fig.savefig(outfile, bbox_inches='tight')
+
 
 def plot_template_aux(ax, f_lin, path="test", label="label", marker=".", markersize=3, markerfacecolor=(1, 0, 0, 0.3), markeredgecolor=(1, 0, 0, 1), A=1.):
     k, pk = np.loadtxt(path, usecols=(0, 1), unpack=True)
     
     range_ = slice(0, k.size, 5)
     k, pk = k[range_], pk[range_]
-    ax[0].plot(k, A * pk / f_lin(k), ls="", label=label, marker=marker, markersize=markersize, markerfacecolor=markerfacecolor, markeredgecolor=markeredgecolor)
-    ax[1].plot(k, A * k * pk, ls="", marker=marker, markersize=markersize, markerfacecolor=markerfacecolor, markeredgecolor=markeredgecolor)
+    ax.plot(k, A * pk / f_lin(k), ls="", label=label, marker=marker, markersize=markersize, markerfacecolor=markerfacecolor, markeredgecolor=markeredgecolor)
+    # ax[1].plot(k, A * k * pk, ls="", marker=marker, markersize=markersize, markerfacecolor=markerfacecolor, markeredgecolor=markeredgecolor)
     
 def poly2(x, a, b):
     return a + b * x**2
@@ -661,7 +934,7 @@ def poly2(x, a, b):
 def main_template(outpath="test"):
 
     dict_1 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG.pspec",
-            "label":r"CG$_\mathrm{vv}$",
+            "label":r"CG$_\mathrm{B,vv}$",
             "facecolor":(1, 0, 0, 0.3),
             "edgecolor":(1, 0, 0, 1),
             "A":1.15,
@@ -670,7 +943,7 @@ def main_template(outpath="test"):
             }
 
     dict_2 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG.xpspec",
-            "label":r"CG$_\mathrm{gv}$",
+            "label":r"CG$_\mathrm{B,gv}$",
             "facecolor":(1, 0, 1, 0.3),
             "edgecolor":(1, 0, 1, 1),
             "A":1.,
@@ -679,7 +952,7 @@ def main_template(outpath="test"):
             }
 
     dict_3 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/box1/G1024/16R_1000bins/avg_voids/stitched_G2048_50_G512_2000.txt",
-            "label":r"SK$_\mathrm{vv}$",
+            "label":r"SK$_\mathrm{B,vv}$",
             "facecolor":(0, 0, 1, 0.3),
             "edgecolor":(0, 0, 1, 1),
             "A":1.05,
@@ -688,7 +961,7 @@ def main_template(outpath="test"):
             }
 
     dict_4 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/box1/G1024/16R_1000bins/avg_cross/avg_16R_2001.pspec",
-            "label":r"SK$_\mathrm{gv}$",
+            "label":r"SK$_\mathrm{B,gv}$",
             "facecolor":(1, 1, 0, 0.3),
             "edgecolor":(1, 0.7, 0, 1),
             "A":1.,
@@ -701,7 +974,7 @@ def main_template(outpath="test"):
 
     ######
     dict_1 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG_80.pspec",
-            "label":r"CG$_\mathrm{80,vv}$",
+            "label":r"CG$_\mathrm{B,80,vv}$",
             "facecolor":(0.1, 1, 0.1, 0.3),
             "edgecolor":(0.1, 1, 0.1, 1),
             "A":1.25,
@@ -710,7 +983,7 @@ def main_template(outpath="test"):
             }
 
     dict_2 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG_80.xpspec",
-            "label":r"CG$_\mathrm{80,gv}$",
+            "label":r"CG$_\mathrm{B,80,gv}$",
             "facecolor":(0.1, 1, 0.1, 0.3),
             "edgecolor":(0.1, 1, 0.1, 1),
             "A":1.,
@@ -719,7 +992,7 @@ def main_template(outpath="test"):
             }
 
     dict_3 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG_120.pspec",
-            "label":r"CG$_\mathrm{120,vv}$",
+            "label":r"CG$_\mathrm{B,120,vv}$",
             "facecolor":(160/255., 32/255., 240/255., 0.3),
             "edgecolor":(160/255., 32/255., 240/255., 1),
             "A":1.05,
@@ -728,7 +1001,7 @@ def main_template(outpath="test"):
             }
 
     dict_4 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG_120.xpspec",
-            "label":r"CG$_\mathrm{120,gv}$",
+            "label":r"CG$_\mathrm{B,120,gv}$",
             "facecolor":(160/255., 32/255., 240/255., 0.3),
             "edgecolor":(160/255., 32/255., 240/255., 1),
             "A":1.,
@@ -741,7 +1014,7 @@ def main_template(outpath="test"):
 
     ###### 
     dict_1 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG_imp.pspec",
-            "label":r"CG$_\mathrm{def,vv}$",
+            "label":r"CG$_\mathrm{B,def,vv}$",
             "facecolor":(1, 0, 0, 0.3),
             "edgecolor":(1, 0, 0, 1),
             "A":1.,
@@ -750,7 +1023,7 @@ def main_template(outpath="test"):
             }
 
     dict_2 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG_imp.xpspec",
-            "label":r"CG$_\mathrm{def,gv}$",
+            "label":r"CG$_\mathrm{B,def,gv}$",
             "facecolor":(1, 0, 1, 0.3),
             "edgecolor":(1, 0, 1, 1),
             "A":1.,
@@ -759,7 +1032,7 @@ def main_template(outpath="test"):
             }
 
     dict_3 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/box1/G1024FAC0.3/stitched_G2048_50_G512_2000_FAC0.3_G1024.txt",
-            "label":r"SK$_\mathrm{def,vv}$",
+            "label":r"SK$_\mathrm{B,def,vv}$",
             "facecolor":(0, 0, 1, 0.3),
             "edgecolor":(0, 0, 1, 1),
             "A":1.3,
@@ -768,7 +1041,7 @@ def main_template(outpath="test"):
             }
 
     dict_4 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/box1/G1024FAC0.3/stitched_G2048_50_G512_2000_FAC0.3_G1024_xpspec.txt",
-            "label":r"SK$_\mathrm{def,gv}$",
+            "label":r"SK$_\mathrm{B,def,gv}$",
             "facecolor":(1, 1, 0, 0.3),
             "edgecolor":(1, 0.7, 0, 1),
             "A":1.,
@@ -784,16 +1057,16 @@ def main_template(outpath="test"):
             "label":r"CG$_\mathrm{B,vv}$",
             "facecolor":(1, 0, 0, 0.3),
             "edgecolor":(1, 0, 0, 1),
-            "A":0.33,
+            "A":0.6,
             "marker":"o",
             "markersize":3
             }
 
-    dict_2 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/lightcone_box1/avg/stitched_16R_G2048_50_G512_2000_CG_LC.pspec",
+    dict_2 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/lightcone_box1_large_v/stitched_16R_G2048_50_G512_20_CG_large_v.pspec",
             "label":r"CG$_\mathrm{LC,vv}$",
             "facecolor":(0.1, 1, 0.1, 0.3),
             "edgecolor":(0.1, 1, 0.1, 1),
-            "A":0.65,
+            "A":1.03,
             "marker":"o",
             "markersize":3
             }
@@ -802,12 +1075,12 @@ def main_template(outpath="test"):
             "label":r"SK$_\mathrm{B,vv}$",
             "facecolor":(0, 0, 1, 0.3),
             "edgecolor":(0, 0, 1, 1),
-            "A":0.3,
+            "A":0.55,
             "marker":"s",
             "markersize":3
             }
 
-    dict_4 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/lightcone_box1/G1024/16R/avg_voids/avg_16R_2000.pspec",
+    dict_4 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/lightcone_box1/G1024/16R/large_v/stitched_16R_G2048_50_G512_20_CIC_large_v.pspec",
             "label":r"SK$_\mathrm{LC,vv}$",
             "facecolor":(1, 1, 0, 0.3),
             "edgecolor":(1, 0.7, 0, 1),
@@ -816,9 +1089,51 @@ def main_template(outpath="test"):
             "markersize":3
             }
     
-    plot_template(dict_1, dict_2, dict_3, dict_4, outpath=outpath, figurename="LC_template.pdf")
+    # plot_template(dict_1, dict_2, dict_3, dict_4, outpath=outpath, figurename="LC_template.pdf", box=False)
 
-def plot_template(dict_1, dict_2, dict_3, dict_4, outpath="test", figurename="figname"):
+
+    ###### 
+    dict_1 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG.pspec",
+            "label":r"CG$_\mathrm{B,vv}$",
+            "facecolor":(1, 0, 0, 0.3),
+            "edgecolor":(1, 0, 0, 1),
+            "A":1.45,
+            "marker":"o",
+            "markersize":3
+            }
+
+    # dict_2 = {"filename": "/scratch/variu/clustering/linearnw_COSMOGAME/patchy_cmass_like/fix_ampl/box1/avg/stitched_16R_G2048_50_G512_2000_CG.xpspec",
+    #         "label":r"CG$_\mathrm{B,gv}$",
+    #         "facecolor":(1, 0, 1, 0.3),
+    #         "edgecolor":(1, 0, 1, 1),
+    #         "A":1.,
+    #         "marker":"o",
+    #         "markersize":3
+    #         }
+
+    dict_3 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/box1/G1024/16R_1000bins/avg_voids/stitched_G2048_50_G512_2000.txt",
+            "label":r"SK$_\mathrm{B,vv}$",
+            "facecolor":(0, 0, 1, 0.3),
+            "edgecolor":(0, 0, 1, 1),
+            "A":1.30,
+            "marker":"s",
+            "markersize":3
+            }
+
+    # dict_4 = {"filename": "/scratch/variu/clustering/linearnw_CIC/patchy_cmass_like/fix_ampl/box1/G1024/16R_1000bins/avg_cross/avg_16R_2001.pspec",
+    #         "label":r"SK$_\mathrm{B,gv}$",
+    #         "facecolor":(1, 1, 0, 0.3),
+    #         "edgecolor":(1, 0.7, 0, 1),
+    #         "A":1.,
+    #         "marker":"s",
+    #         "markersize":3
+            # }
+    
+    # plot_template(dict_1, dict_2, dict_3, dict_4, outpath=outpath, figurename="correct_template_post_recon_data.pdf", box=False)
+    plot_template(dict_1, None, dict_3, None, outpath=outpath, figurename="correct_template_post_recon_data.pdf", box=False, recon=True)
+
+
+def plot_template(dict_1, dict_2, dict_3, dict_4, outpath="test", figurename="figname", box=True, recon=False):
     from scipy.interpolate import interp1d
 
     linear = "/home/astro/variu/phd/voids/chengscodes/CosmoGAME/EisensteinHu_Pnw.txt"
@@ -826,83 +1141,102 @@ def plot_template(dict_1, dict_2, dict_3, dict_4, outpath="test", figurename="fi
     fint_lin_nw = interp1d(np.log(k_lin_nw), np.log(pk_linw_nw), kind="cubic")
     f_lin_nw = lambda k: np.exp(fint_lin_nw(np.log(k)))
 
-    # reference_ab = "/hpcstorage/variu/BigMD/pspec/voids_Box_HAM_z0.465600_nbar3.976980e-04_scat0.2384.dat.pspec_512"
-    # k_rab, pk_rab = np.loadtxt(reference_ab, usecols=(0, 5), unpack=True)
-    
-    # reference_xb = "/hpcstorage/variu/BigMD/voids_Box_HAM_z0.465600_nbar3.976980e-04_scat0.2384.dat.xpspec"
-    # k_rxb, pk_rxb = np.loadtxt(reference_xb, usecols=(0, 5), unpack=True)
+    fig, ax = pt.subplots(figsize=(5, 4), sharex=True, gridspec_kw={"wspace":0.4})
 
-    # reference_a = "/scratch/variu/clustering/patchy_cmass_subset/box1/real/pkvoids_g/avg_500.pspec"
-    reference_a = "/scratch/variu/clustering/patchy_cmass_subset/lightcone_box1/real/pkvoids/16R/avg_30.pspec"
+    if box:
+        reference_a = "/scratch/variu/clustering/patchy_cmass_subset/box1/real/pkvoids_g/avg_500.pspec"
+    else:
+        reference_a = "/scratch/variu/clustering/patchy_cmass_subset/lightcone_box1/real_large_V_pspec/avg_80.pspec"
+        if recon:
+            reference_a = "/scratch/variu/clustering/patchy_cmass_subset/box1/redshift_recon/pkvoids/avg_495_recon.pspec"
+    
     k_ra, pk_ra = np.loadtxt(reference_a, usecols=(0, 1), unpack=True)
     print(np.max(k_ra))
 
-    # reference_x = "/scratch/variu/clustering/patchy_cmass_subset/box1/real/pkcross_g/avg_500.xpspec"
-    reference_x = "/scratch/variu/clustering/patchy_cmass_subset/lightcone_box1/real/pkvoids/16R/avg_30.pspec"
-    k_rx, pk_rx = np.loadtxt(reference_x, usecols=(0, 1), unpack=True)
-    print(np.max(k_rx))
+    
+    if box:
+        reference_x = "/scratch/variu/clustering/patchy_cmass_subset/box1/real/pkcross_g/avg_500.xpspec"
+        k_rx, pk_rx = np.loadtxt(reference_x, usecols=(0, 1), unpack=True)
+        print(np.max(k_rx))
 
-    
-    fig, ax = pt.subplots(1, 2, figsize=(4, 4), sharex=True, gridspec_kw={"wspace":0.4})
-    
-    plot_template_aux(ax, f_lin_nw, path=dict_1["filename"], label=dict_1["label"], marker=dict_1["marker"], markersize=dict_1["markersize"], markerfacecolor=dict_1["facecolor"], markeredgecolor=dict_1["edgecolor"], A=dict_1["A"])
-    plot_template_aux(ax, f_lin_nw, path=dict_2["filename"], label=dict_2["label"], marker=dict_2["marker"], markersize=dict_2["markersize"], markerfacecolor=dict_2["facecolor"], markeredgecolor=dict_2["edgecolor"], A=dict_2["A"])
-    plot_template_aux(ax, f_lin_nw, path=dict_3["filename"], label=dict_3["label"], marker=dict_3["marker"], markersize=dict_3["markersize"], markerfacecolor=dict_3["facecolor"], markeredgecolor=dict_3["edgecolor"], A=dict_3["A"])
-    plot_template_aux(ax, f_lin_nw, path=dict_4["filename"], label=dict_4["label"], marker=dict_4["marker"], markersize=dict_4["markersize"], markerfacecolor=dict_4["facecolor"], markeredgecolor=dict_4["edgecolor"], A=dict_4["A"])
-
-    ax[0].plot(k_ra, pk_ra / f_lin_nw(k_ra), label=r"mock $P_\mathrm{vv}$", color="k")
-    # ax[0].plot(k_rx, pk_rx / f_lin_nw(k_rx), label=r"mock $P_\mathrm{gv}$", color="grey")
-
-    ax[1].plot(k_ra, k_ra * pk_ra, color="k")
-    # ax[1].plot(k_rx, k_rx * pk_rx, color="grey")
-
-    # ax[0].set_ylim([-3.5, 8.5])
-    # ax[1].set_xlim([0, 0.3])
-    
-    ## for boxes
-    # ax[1].set_xlim([0, 0.60])
-    # ax[0].set_ylim([-4.0, 15])
-    
-
-    # for LC
-    ax[1].set_xlim([0, 0.45])
-    ax[0].set_ylim([-0.1, 3.5])
-    
-    ax[0].set_xlabel(r"$k[h~\mathrm{Mpc}^{-1}]$")
-    ax[0].set_ylabel(r"$P_\mathrm{mock/template}(k)/P_\mathrm{lin,nw}(k)$")
-    
-    ax[1].set_xlabel(r"$k[h~\mathrm{Mpc}^{-1}]$")
-    ax[1].set_ylabel(r"$kP_\mathrm{mock/template}(k)$")
-    
-    ax[0].set_yticks([0])
-    ax[0].set_yticklabels([0])
-    
-    # ax[1].set_yticks([-1000, 0, 1000, 2000, 3000])
-    # ax[1].set_yticklabels([-1, 0, 1, 2, 3])
-    
-    ax[1].set_yticks([0, 200, 400, 600, 800, 1000])
-    ax[1].set_yticklabels([0, 2, 4, 6, 8, 10])
-    
-    ax[0].axhline(0, ls=":", color="grey")
-
-    ax[0].legend(bbox_to_anchor=(-0.3, 1.0), loc='lower left', ncol=3)
-
+       
+        
+    ######################################## Parabolic START
     # from scipy.optimize import curve_fit
     # range_ = k_ra < 0.1
 
-    # c = 822.195
+    # for box
+    # c = 1064
+    # A = 0.8
+
+    # for LC
+    # c = 1495.20356669250032
     # A = 0.4
-    # # ax[0].plot(k_ra, A * (1 + c * k_ra ** 2), color="grey", ls="--")
+
+    # ax.axhline(( pk_ra / f_lin_nw(k_ra))[0], color="grey", ls="--", label="DW")
+
+    # ax.plot(k_ra, A * (1 + c * k_ra ** 2), color="green", ls="--", label="PAR")
+
     # popt, pcov = curve_fit(poly2, k_ra[range_], (pk_ra / f_lin_nw(k_ra))[range_])
     # print(popt)
-    # ax[0].plot(k_ra, poly2(k_ra, *popt), color="grey", ls="--")
+    # ax.plot(k_ra, poly2(k_ra, *popt), color="grey", ls="--")
 
-    # c = -924.48
+    # c = 219
     # A = 1
-    # # ax[0].plot(k_rx, A * (1 + c * k_rx ** 2), color="grey", ls="--")
+    # ax.axhline((pk_rx / f_lin_nw(k_rx))[0], color="grey", ls="--", label="DW")
+
+    # ax.plot(k_rx, - A * (1 + c * k_rx ** 2), color="green", ls="--", label="PAR")
     # popt, pcov = curve_fit(poly2, k_rx[range_], (pk_rx / f_lin_nw(k_rx))[range_])
     # print(popt)
-    # ax[0].plot(k_rx, poly2(k_rx, *popt), color="grey", ls="--")
+    # ax.plot(k_rx, poly2(k_rx, *popt), color="grey", ls="--")
+    ######################################## Parabolic END
+
+    
+    plot_template_aux(ax, f_lin_nw, path=dict_1["filename"], label=dict_1["label"], marker=dict_1["marker"], markersize=dict_1["markersize"], markerfacecolor=dict_1["facecolor"], markeredgecolor=dict_1["edgecolor"], A=dict_1["A"])
+    # plot_template_aux(ax, f_lin_nw, path=dict_2["filename"], label=dict_2["label"], marker=dict_2["marker"], markersize=dict_2["markersize"], markerfacecolor=dict_2["facecolor"], markeredgecolor=dict_2["edgecolor"], A=dict_2["A"])
+    plot_template_aux(ax, f_lin_nw, path=dict_3["filename"], label=dict_3["label"], marker=dict_3["marker"], markersize=dict_3["markersize"], markerfacecolor=dict_3["facecolor"], markeredgecolor=dict_3["edgecolor"], A=dict_3["A"])
+    # plot_template_aux(ax, f_lin_nw, path=dict_4["filename"], label=dict_4["label"], marker=dict_4["marker"], markersize=dict_4["markersize"], markerfacecolor=dict_4["facecolor"], markeredgecolor=dict_4["edgecolor"], A=dict_4["A"])
+  
+
+    if recon:
+        ax.plot(k_ra, pk_ra / f_lin_nw(k_ra), label=r"recon mock $P_\mathrm{vv}$", color="k")
+    else:
+        ax.plot(k_ra, pk_ra / f_lin_nw(k_ra), label=r"mock $P_\mathrm{vv}$", color="k")
+
+    # ax[1].plot(k_ra, k_ra * pk_ra, color="k")
+
+    if box:
+        ax.plot(k_rx, pk_rx / f_lin_nw(k_rx), label=r"mock $P_\mathrm{gv}$", color="grey")
+        # ax[1].plot(k_rx, k_rx * pk_rx, color="grey")
+    
+    if box:
+        ax.set_xlim([0, 0.60])
+        ax.set_ylim([-4.0, 15])
+        # ax[1].set_yticks([-1000, 0, 1000, 2000, 3000])
+        # ax[1].set_yticklabels([-1, 0, 1, 2, 3])
+    else:
+        ax.set_xlim([0, 0.45])
+        ax.set_ylim([-0.1, 6.0])
+        if recon:
+            ax.set_xlim([0, 0.60])
+            ax.set_ylim([-0.1, 20])
+        
+
+        # ax[1].set_yticks([0, 400, 800, 1200, 1600])
+        # ax[1].set_yticklabels([0, 4, 8, 12, 16])
+
+
+    ax.set_xlabel(r"$k[h~\mathrm{Mpc}^{-1}]$")
+    ax.set_ylabel(r"$P_\mathrm{mock/template}(k)/P_\mathrm{lin,nw}(k)$")
+    
+    # ax[1].set_xlabel(r"$k[h~\mathrm{Mpc}^{-1}]$")
+    # ax[1].set_ylabel(r"$kP_\mathrm{mock/template}(k)$")
+    
+    ax.set_yticks([0])
+    ax.set_yticklabels([0])
+        
+    ax.axhline(0, ls=":", color="grey")
+    ax.legend(bbox_to_anchor=(0, 1.0), loc='lower left', ncol=3)
 
     fig.tight_layout()
     fig.savefig(outpath + figurename, bbox_inches='tight')
@@ -910,19 +1244,19 @@ def plot_template(dict_1, dict_2, dict_3, dict_4, outpath="test", figurename="fi
 def main():
     pt.rcParams.update({'font.family': "serif"})
     pt.rcParams.update({'font.serif': "Times New Roman"})
-    # pt.rcParams['mathtext.fontset'] = 'Times New Roman'
+
     mpl.rcParams['mathtext.fontset'] = 'cm'
     mpl.rcParams['mathtext.rm'] = 'serif'
-    print(pt.rcParams.keys())
-    outpath = "/home/astro/variu/void_project_figs/"
+    # print(pt.rcParams.keys())
     
+    outpath = "/home/astro/variu/void_project_figs/"
+    # outpath = "/home/astro/variu/temp/"
+     
     # main_template(outpath=outpath)
-    # exit()
     # exit()
     # best_fit_threepanels(outpath=outpath)
     # best_fit_onepanel(outpath=outpath)
     # exit()
-    
     ## BOX vv2pcf
     # inpath2 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/parab_60_150_m_fast/"
     # inpath2c = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf/parab_60_150_m_fast_fixc/"
@@ -976,20 +1310,6 @@ def main():
     inpath_CG_120_vh = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vhxcf_CG/stitched_16R_G2048_50_G512_2000_CG_120/"
    
     ## LC vv2pcf
-    # inpath4 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/galaxy_60_150_m/"
-    # inpath5 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/parab_60_150_m_fast/"
-    # inpath6 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/parab_60_150_m_fast2/"
-    # inpath7 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000_old/"
-    # inpath8 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000/"
-    # inpath9 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_B2000/"
-
-    # inpath10 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000D/"
-    # inpath11 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000E/"
-    # inpath12 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_2000F/"
-
-    # inpath13 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_500/"
-    # inpath14 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1/real/vv2pcf/G1024CIC_60_150_m_500F/"
-
     # inpath1000 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_CG/stitched_16R_G2048_50_G512_2000_CG/"
     # inpath1001 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_CG/stitched_16R_G2048_50_G512_2000_CG_LC/"
     # inpath1002 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_CG/galaxy_60_150_m/"
@@ -998,105 +1318,106 @@ def main():
     # inpath1005 = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf/stitched_G2048_50_G512_2000/"
 
 
-    # obtain_chi2_alpha_evi(inpath_SK_imp_vh, endcffile=".dat.dr.2pcf")
-    # obtain_chi2_alpha_evi(inpath26_fixc, endcffile=".dat.dr.2pcf")
     # obtain_chi2_alpha_evi(inpath_CG_80_vh, endcffile=".dat.dr.2pcf")
     # obtain_chi2_alpha_evi(inpath1002, endcffile=".dat.2pcf")
-    # obtain_chi2_alpha_evi(inpath1003, endcffile=".dat.2pcf")
     # obtain_chi2_alpha_evi(inpath2c, endcffile=".VOID.dat.2pcf")
-    # obtain_chi2_alpha_evi(inpath_parab_vv , endcffile=".VOID.dat.2pcf")
-    # obtain_chi2_alpha_evi(inpath_parab_fixc_vv , endcffile=".VOID.dat.2pcf")
-    
-    # obtain_chi2_alpha_evi(inpath_parab_vh , endcffile=".dat.dr.2pcf")
-    # obtain_chi2_alpha_evi(inpath_parab_fixc_vh , endcffile=".dat.dr.2pcf")
     # exit()
-    # outpath = "/home/astro/variu/void_project_figs/"
-    outpath = "/home/astro/variu/temp/"
+
     
+    ### Plot 1: AX_B_CG_SK_GAL_fixc
     # dict_labels_A = {
-    #     "first":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":r"$\alpha_\mathdefault{med, fix c}$", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":r"$\sigma_\mathdefault{fix c}$", "filename":inpath_parab_fixc_vv, "color":"red"},
-    #     "second":{"label":"CG", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":r"$\alpha_\mathdefault{med, CG}$", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":r"$\sigma_\mathdefault{CG}$", "filename":inpath_CG_vv, "color":"green"},
-    #     "third":{"label":"SK", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":r"$\alpha_\mathdefault{med, SK}$", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":r"$\sigma_\mathdefault{SK}$", "filename":inpath_SK_vv,"color":"blue"},
-    #     "forth":{"label":"GAL", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":r"$\alpha_\mathdefault{med, GAL}$", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":r"$\sigma_\mathdefault{GAL}$", "filename":inpath_gal_vv, "color":"magenta"},
+    #     "first":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":"\\alpha_\\mathdefault{{fix~c}}", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":"\\sigma_\\mathdefault{fix c}", "filename":inpath_parab_fixc_vv, "color":"red"},
+    #     "second":{"label":"CG$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":"\\alpha_{{\\mathdefault{{CG}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":"\\sigma_\\mathdefault{{CG}}", "filename":inpath_CG_vv, "color":"green"},
+    #     "third":{"label":"SK$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":"\\alpha_{{\\mathdefault{{SK}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":"\\sigma_\\mathdefault{{SK}}", "filename":inpath_SK_vv,"color":"blue"},
+    #     "forth":{"label":"DW", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":"\\alpha_\\mathdefault{{DW}}", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":"\\sigma_\\mathdefault{{GAL}}", "filename":inpath_gal_vv, "color":"magenta"},
     #     "filename":outpath + "A_B_CG_SK_GAL_fixc",
     #     "label":"A",
     #     "color":"blue",
     #     "alphamed":{"ticks":[0.98, 1.0, 1.02], "bins":np.linspace(0.8, 1.2, 101)},
     #     "bayesfactor":{"minval":-15, "maxval":15, "ticks":[-10, -5, 0, 5, 10], "bins":np.linspace(-15,15, 51)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-2, "maxval":0.8, "ticks":[-1.6, -1.2, -0.8, -0.4, 0, 0.4], "bins":np.linspace(-2, 2, 81)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-2, "maxval":0.8, "ticks":[-1.6, -1.2, -0.9, -0.6, -0.3, 0, 0.3], "bins":np.linspace(-2, 2, 81)},
     #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.02, "ticks":[-0.004, 0, 0.004, 0.008, 0.012], "bins":np.linspace(-0.05, 0.05, 201)},
     #     "deltasigmaoversigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3], "bins":np.linspace(-2, 2, 201)},
     #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":1.5, "ticks":[-0.4, 0, 0.4, 0.8, 1.2], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".VOID.dat.2pcf",
     #     "begcffile":""
     #     }
     # dict_labels_X = {
-    #     "first":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":r"$\alpha_\mathdefault{med, fix c}$", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":r"$\sigma_\mathdefault{fix c}$", "filename":inpath_parab_fixc_vh, "color":"cyan"},
-    #     "second":{"label":"CG", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":r"$\alpha_\mathdefault{med, CG}$", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":r"$\sigma_\mathdefault{CG}$", "filename":inpath_CG_vh, "color":"green"},
-    #     "third":{"label":"SK", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":r"$\alpha_\mathdefault{med, SK}$", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":r"$\sigma_\mathdefault{SK}$", "filename":inpath_SK_vh,"color":"blue"},
-    #     "forth":{"label":"GAL", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":r"$\alpha_\mathdefault{med, GAL}$", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":r"$\sigma_\mathdefault{GAL}$", "filename":inpath_gal_vh, "color":"magenta"},
+    #     "first":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":"\\alpha_\\mathdefault{{fix~c}}", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":"\\sigma_\\mathdefault{fix c}", "filename":inpath_parab_fixc_vh, "color":"cyan"},
+    #     "second":{"label":"CG$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":"\\alpha_{{\\mathdefault{{CG}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":"\\sigma_\\mathdefault{{CG}}", "filename":inpath_CG_vh, "color":"green"},
+    #     "third":{"label":"SK$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":"\\alpha_{{\\mathdefault{{SK}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":"\\sigma_\\mathdefault{{SK}}", "filename":inpath_SK_vh,"color":"blue"},
+    #     "forth":{"label":"DW", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":"\\alpha_\\mathdefault{{DW}}", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":"\\sigma_\\mathdefault{{GAL}}", "filename":inpath_gal_vh, "color":"magenta"},
     #     "filename":outpath + "X_B_CG_SK_GAL_fixc",
     #     "label":"X",
     #     "color":"red",
     #     "alphamed":{"ticks":[0.98, 1.0, 1.02], "bins":np.linspace(0.8, 1.2, 101)},
     #     "bayesfactor":{"minval":-15, "maxval":15, "ticks":[-10, -5, 0, 5, 10], "bins":np.linspace(-15,15, 51)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-2, "maxval":0.8, "ticks":[-1.6, -1.2, -0.8, -0.4, 0, 0.4], "bins":np.linspace(-2, 2, 81)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-2, "maxval":0.8, "ticks":[-1.6, -1.2, -0.9, -0.6, -0.3, 0, 0.3], "bins":np.linspace(-2, 2, 81)},
     #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.02, "ticks":[-0.004, 0, 0.004, 0.008, 0.012], "bins":np.linspace(-0.05, 0.05, 201)},
     #     "deltasigmaoversigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3], "bins":np.linspace(-2, 2, 201)},
     #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":1.5, "ticks":[-0.4, 0, 0.4, 0.8, 1.2], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".dat.dr.2pcf",
     #     "begcffile":""
     #     }
     # plot_comparison_UL(dict_labels_A, dict_labels_X, keys=["first","second","third", "forth"], figname=outpath + "/AX_B_CG_SK_GAL_fixc", outliers=False)
     
+
+    ### Plot 2: AX_B_CG_SK_GAL_PAR_fixc
     # dict_labels_A = {
-    #     "first":{"label":"PAR", "alphabest":r"$\alpha_\mathdefault{best, PAR}$", "alphamed":r"$\alpha_\mathdefault{med, PAR}$", "alpha":r"$\alpha_\mathdefault{PAR}$", "sigma":r"$\sigma_\mathdefault{PAR}$", "filename":inpath_parab_vv, "color":"orange"},
-    #     "second":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":r"$\alpha_\mathdefault{med, fix c}$", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":r"$\sigma_\mathdefault{fix c}$", "filename":inpath_parab_fixc_vv, "color":"red"},
-    #     "third":{"label":"CG", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":r"$\alpha_\mathdefault{med, CG}$", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":r"$\sigma_\mathdefault{CG}$", "filename":inpath_CG_vv, "color":"green"},
-    #     "forth":{"label":"SK", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":r"$\alpha_\mathdefault{med, SK}$", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":r"$\sigma_\mathdefault{SK}$", "filename":inpath_SK_vv,"color":"blue"},
-    #     "fifth":{"label":"GAL", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":r"$\alpha_\mathdefault{med, GAL}$", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":r"$\sigma_\mathdefault{GAL}$", "filename":inpath_gal_vv, "color":"magenta"},
-    #     "filename":outpath + "A_B_CG_SK_GAL_PAR_PARC",
+    #     "first":{"label":"PAR$_\\mathdefault{{G}}$", "alphabest":r"$\alpha_\mathdefault{best, PAR}$", "alphamed":"\\alpha_{{\\mathdefault{{PAR}}_\\mathrm{{G}} }}", "alpha":r"$\alpha_\mathdefault{PAR}$", "sigma":"\\sigma_\\mathdefault{{PAR}}", "filename":inpath_parab_vv, "color":"orange"},
+    #     "second":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":"\\alpha_\\mathdefault{{fix~c}}", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":"\\sigma_\\mathdefault{{fix c}}", "filename":inpath_parab_fixc_vv, "color":"red"},
+    #     "third":{"label":"CG$_\\mathdefault{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":"\\alpha_{{\\mathdefault{{CG}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":"\\sigma_\\mathdefault{{CG}}", "filename":inpath_CG_vv, "color":"green"},
+    #     "forth":{"label":"SK$_\\mathdefault{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":"\\alpha_{{\\mathdefault{{SK}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":"\\sigma_\\mathdefault{{SK}}", "filename":inpath_SK_vv,"color":"blue"},
+    #     "fifth":{"label":"DW", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":"\\alpha_\\mathdefault{{DW}}", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":"\\sigma_\\mathdefault{{GAL}}", "filename":inpath_gal_vv, "color":"magenta"},
+    #     "filename":outpath + "A_B_CG_SK_GAL_PAR_fixc",
     #     "label":"A",
     #     "color":"blue",
-    #     "alphamed":{"ticks":[0.98, 1.0, 1.02], "bins":np.linspace(0.8, 1.2, 101)},
+    #     "alphamed":{"ticks":[0.975, 1.0, 1.025], "bins":np.linspace(0.8, 1.2, 101)},
     #     "bayesfactor":{"minval":-15, "maxval":15, "ticks":[-10, -5, 0, 5, 10], "bins":np.linspace(-15,15, 51)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "tensionparams":{"minval":-2, "maxval":0.8, "ticks":[-1.6, -1.2, -0.8, -0.4, 0, 0.4], "bins":np.linspace(-2, 2, 51)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.02, "ticks":[-0.004, 0, 0.004, 0.008, 0.012], "bins":np.linspace(-0.05, 0.05, 201)},
-    #     "deltasigmaoversigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3], "bins":np.linspace(-2, 2, 201)},
+    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.02, "ticks":[-0.004, 0, 0.004, 0.008], "bins":np.linspace(-0.05, 0.05, 201)},
+    #     "deltasigmaoversigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.3, -0.15, -0.1, 0, 0.15], "bins":np.linspace(-2, 2, 201)},
     #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":1.5, "ticks":[-0.4, 0, 0.4, 0.8, 1.2], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".VOID.dat.2pcf",
     #     "begcffile":""
     #     }
     # dict_labels_X = {
-    #     "first":{"label":"PAR", "alphabest":r"$\alpha_\mathdefault{best, PAR}$", "alphamed":r"$\alpha_\mathdefault{med, PAR}$", "alpha":r"$\alpha_\mathdefault{PAR}$", "sigma":r"$\sigma_\mathdefault{PAR}$", "filename":inpath_parab_vh, "color":"orange"},
-    #     "second":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":r"$\alpha_\mathdefault{med, fix c}$", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":r"$\sigma_\mathdefault{fix c}$", "filename":inpath_parab_fixc_vh, "color":"cyan"},
-    #     "third":{"label":"CG", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":r"$\alpha_\mathdefault{med, CG}$", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":r"$\sigma_\mathdefault{CG}$", "filename":inpath_CG_vh, "color":"green"},
-    #     "forth":{"label":"SK", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":r"$\alpha_\mathdefault{med, SK}$", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":r"$\sigma_\mathdefault{SK}$", "filename":inpath_SK_vh,"color":"blue"},
-    #     "fifth":{"label":"GAL", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":r"$\alpha_\mathdefault{med, GAL}$", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":r"$\sigma_\mathdefault{GAL}$", "filename":inpath_gal_vh, "color":"magenta"},
-    #     "filename":outpath + "X_B_CG_SK_GAL_PAR",
+    #     "first":{"label":"PAR$_\\mathdefault{{G}}$", "alphabest":r"$\alpha_\mathdefault{best, PAR}$", "alphamed":"\\alpha_{{\\mathdefault{{PAR}}_\\mathrm{{G}} }}", "alpha":r"$\alpha_\mathdefault{PAR}$", "sigma":"\\sigma_\\mathdefault{{PAR}}", "filename":inpath_parab_vh, "color":"orange"},
+    #     "second":{"label":"fix c", "alphabest":r"$\alpha_\mathdefault{best, fix c}$", "alphamed":"\\alpha_\\mathdefault{{fix~c}}", "alpha":r"$\alpha_\mathdefault{fix c}$", "sigma":"\\sigma_\\mathdefault{{fix c}}", "filename":inpath_parab_fixc_vh, "color":"cyan"},
+    #     "third":{"label":"CG$_\\mathdefault{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, CG}$", "alphamed":"\\alpha_{{\\mathdefault{{CG}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{CG}$", "sigma":"\\sigma_\\mathdefault{{CG}}", "filename":inpath_CG_vh, "color":"green"},
+    #     "forth":{"label":"SK$_\\mathdefault{{B}}$", "alphabest":r"$\alpha_\mathdefault{best, SK}$", "alphamed":"\\alpha_{{\\mathdefault{{SK}}_\\mathrm{{B}}}}", "alpha":r"$\alpha_\mathdefault{SK}$", "sigma":"\\sigma_\\mathdefault{{SK}}", "filename":inpath_SK_vh,"color":"blue"},
+    #     "fifth":{"label":"DW", "alphabest":r"$\alpha_\mathdefault{best, GAL}$", "alphamed":"\\alpha_\\mathdefault{{DW}}", "alpha":r"$\alpha_\mathdefault{GAL}$", "sigma":"\\sigma_\\mathdefault{{GAL}}", "filename":inpath_gal_vh, "color":"magenta"},
+    #     "filename":outpath + "X_B_CG_SK_GAL_PAR_fixc",
     #     "label":"X",
     #     "color":"red",
     #     "alphamed":{"ticks":[0.98, 1.0, 1.02], "bins":np.linspace(0.8, 1.2, 101)},
     #     "bayesfactor":{"minval":-15, "maxval":15, "ticks":[-10, -5, 0, 5, 10], "bins":np.linspace(-15,15, 51)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "tensionparams":{"minval":-2, "maxval":0.8, "ticks":[-1.6, -1.2, -0.8, -0.4, 0, 0.4], "bins":np.linspace(-2, 2, 51)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.02, "ticks":[-0.004, 0, 0.004, 0.008, 0.012], "bins":np.linspace(-0.05, 0.05, 201)},
-    #     "deltasigmaoversigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3], "bins":np.linspace(-2, 2, 201)},
+    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.02, "ticks":[-0.004, 0, 0.004, 0.008], "bins":np.linspace(-0.05, 0.05, 201)},
+    #     "deltasigmaoversigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.3, -0.15, -0.1, 0, 0.15], "bins":np.linspace(-2, 2, 201)},
     #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":1.5, "ticks":[-0.4, 0, 0.4, 0.8, 1.2], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".dat.dr.2pcf",
     #     "begcffile":""
     #     }
     # plot_comparison_UL(dict_labels_A, dict_labels_X, keys=["first","second","third", "forth", "fifth"], figname=outpath + "/AX_B_CG_SK_GAL_PAR_fixc", outliers=True)
+    # plot_comparison(dict_labels_A, keys=["first", "second", "third","forth", "fifth"], outliers=True)
+    # plot_comparison(dict_labels_X, keys=["first", "second", "third","forth", "fifth"], outliers=False)
     
     
+    #### Plot 3: AX_B_CG_CG80_CGimp_CG120
     # dict_labels_A = {
-    #     "first":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":r"$\alpha_\mathrm{med, CG}$", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":r"$\sigma_\mathrm{CG}$", "filename":inpath_CG_vv, "color":"green"},
-    #     "second":{"label":r"CG$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{def}}$", "alphamed":r"$\alpha_{\mathrm{med, CG}_\mathrm{def}}$", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{def}}$", "sigma":r"$\sigma_{\mathrm{CG}_\mathrm{def}}$", "filename":inpath_CG_imp_vv,"color":"blue"},
-    #     "third":{"label":r"CG$_\mathrm{80}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{80}}$", "alphamed":r"$\alpha_{\mathrm{med, CG}_\mathrm{80}}$", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{80}}$", "sigma":r"$\sigma_{\mathrm{CG}_\mathrm{80}}$", "filename":inpath_CG_80_vv, "color":"magenta"},
-    #     "forth":{"label":r"CG$_\mathrm{120}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{120}}$", "alphamed":r"$\alpha_{\mathrm{med, CG}_\mathrm{120}}$", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{120}}$", "sigma":r"$\sigma_{\mathrm{CG}_\mathrm{120}}$", "filename":inpath_CG_120_vv, "color":"orange"},
+    #     "first":{"label":"CG$_\\mathdefault{{B}}$",                  "alphabest":r"$\alpha_\mathrm{best, CG}$",  "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{B}} }}","filename":inpath_CG_vv, "color":"green"},
+    #     "second":{"label":r"CG$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{def}}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{def}} }}", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{def}}$", "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{def}} }}", "filename":inpath_CG_imp_vv,"color":"blue"},
+    #     "third":{"label":r"CG$_\mathrm{80}$",   "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{80}}$",  "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{80}} }}",  "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{80}}$",  "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{80}} }}",  "filename":inpath_CG_80_vv, "color":"magenta"},
+    #     "forth":{"label":r"CG$_\mathrm{120}$",  "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{120}}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{120}} }}", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{120}}$", "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{120}} }}", "filename":inpath_CG_120_vv, "color":"orange"},
     #     "filename":outpath + "A_B_CG_CG80_CGimp_CG120",
     #     "label":"A",
     #     "color":"blue",
@@ -1104,18 +1425,19 @@ def main():
     #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
     #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
     #     "tensionparams":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.2, 0, 0.2, 0.4], "bins":np.linspace(-1, 1, 81)},
-    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.002, 0, 0.002, 0.004], "bins":np.linspace(-0.05, 0.05, 501)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.1, -0.05, 0, 0.05, 0.1], "bins":np.linspace(-2, 2, 501)},
+    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.002, 0, 0.002, 0.004], "bins":np.linspace(-0.05, 0.05, 401)},
+    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.1, -0.05, 0, 0.05, 0.1], "bins":np.linspace(-2, 2, 251)},
     #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".VOID.dat.2pcf",
     #     "begcffile":""
     #     }
 
     # dict_labels_X = {
-    #     "first":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":r"$\alpha_\mathrm{med, CG}$", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":r"$\sigma_\mathrm{CG}$", "filename":inpath_CG_vh, "color":"green"},
-    #     "second":{"label":r"CG$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{def}}$", "alphamed":r"$\alpha_{\mathrm{med, CG}_\mathrm{def}}$", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{def}}$", "sigma":r"$\sigma_{\mathrm{CG}_\mathrm{def}}$", "filename":inpath_CG_imp_vh,"color":"blue"},
-    #     "third":{"label":r"CG$_\mathrm{80}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{80}}$", "alphamed":r"$\alpha_{\mathrm{med, CG}_\mathrm{80}}$", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{80}}$", "sigma":r"$\sigma_{\mathrm{CG}_\mathrm{80}}$", "filename":inpath_CG_80_vh, "color":"magenta"},
-    #     "forth":{"label":r"CG$_\mathrm{120}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{120}}$", "alphamed":r"$\alpha_{\mathrm{med, CG}_\mathrm{120}}$", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{120}}$", "sigma":r"$\sigma_{\mathrm{CG}_\mathrm{120}}$", "filename":inpath_CG_120_vh, "color":"orange"},
+    #     "first":{"label":"CG$_\\mathdefault{{B}}$",                  "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{B}} }}",                      "alpha":r"$\alpha_\mathrm{CG}$",                "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{B}} }}",                      "filename":inpath_CG_vh, "color":"green"},
+    #     "second":{"label":r"CG$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{def}}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{def}} }}", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{def}}$", "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{def}} }}", "filename":inpath_CG_imp_vh,"color":"blue"},
+    #     "third":{"label":r"CG$_\mathrm{80}$",   "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{80}}$",  "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{80}} }}",  "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{80}}$",  "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{80}} }}",  "filename":inpath_CG_80_vh, "color":"magenta"},
+    #     "forth":{"label":r"CG$_\mathrm{120}$",  "alphabest":r"$\alpha_{\mathrm{best, CG}_\mathrm{120}}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{120}} }}", "alpha":r"$\alpha_{\mathrm{CG}_\mathrm{120}}$", "sigma":"\\sigma_{{\\mathrm{{CG}}_\\mathrm{{120}} }}", "filename":inpath_CG_120_vh, "color":"orange"},
     #     "filename":outpath + "X_B_CG_CG80_CGimp_CG120",
     #     "label":"X",
     #     "color":"red",
@@ -1123,209 +1445,266 @@ def main():
     #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
     #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
     #     "tensionparams":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.2, 0, 0.2, 0.4], "bins":np.linspace(-1, 1, 81)},
-    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.002, 0, 0.002, 0.004], "bins":np.linspace(-0.05, 0.05, 501)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.1, -0.05, 0, 0.05, 0.1], "bins":np.linspace(-2, 2, 501)},
+    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.002, 0, 0.002, 0.004], "bins":np.linspace(-0.05, 0.05, 401)},
+    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.1, -0.05, 0, 0.05, 0.1], "bins":np.linspace(-2, 2, 251)},
     #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".dat.dr.2pcf",
     #     "begcffile":""
     #     }
     # plot_comparison_UL(dict_labels_A, dict_labels_X, keys=["first","second","third", "forth"], figname=outpath + "/AX_B_CG_CG80_CGimp_CG120")
 
+    
+    ### Plot 4: AX_B_SK_SK_imp
     # dict_labels_A = {
-    #     "first":{"label":"SK", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":r"$\alpha_\mathrm{med, SK}$", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":r"$\sigma_\mathrm{SK}$", "filename":inpath_SK_vv, "color":"blue"},
-    #     "second":{"label":r"SK$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, SK}_\mathrm{def}}$", "alphamed":r"$\alpha_{\mathrm{med, SK}_\mathrm{def}}$", "alpha":r"$\alpha_{\mathrm{SK}_\mathrm{def}}$", "sigma":r"$\sigma_{\mathrm{SK}_\mathrm{def}}$", "filename":inpath_SK_imp_vv, "color":"red"},
+    #     "first":{"label":"SK$_\mathrm{{B}}$",                  "alphabest":r"$\alpha_\mathrm{best, SK}$",                "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{B}}}}",                     "alpha":r"$\alpha_\mathrm{SK}$",                "sigma":"\\sigma_{{\\mathrm{{SK}}_\\mathrm{{B}}}}",                      "filename":inpath_SK_vv, "color":"blue"},
+    #     "second":{"label":r"SK$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, SK}_\mathrm{def}}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{def}}}}", "alpha":r"$\alpha_{\mathrm{SK}_\mathrm{def}}$", "sigma":"\\sigma_{{\\mathrm{{SK}}_\\mathrm{{def}}}}", "filename":inpath_SK_imp_vv, "color":"red"},
     #     "filename":outpath + "A_B_SK_SKimp",
     #     "label":"A",
     #     "color":"blue",
     #     "alphamed":{"ticks":[0.98, 0.99, 1.0, 1.01, 1.02], "bins":np.linspace(0.8, 1.2, 101)},
     #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "tensionparams":{"minval":-0.8, "maxval":0.8, "ticks":[-0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.1, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
-    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.003, -0.002, -0.001, 0, 0.001], "bins":np.linspace(-0.05, 0.05, 501)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-2, 2, 501)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5], "bins":np.linspace(-2, 2, 201)},
+    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.002, 0], "bins":np.linspace(-0.05, 0.05, 251)},
+    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.08, -0.04, 0, 0.04, 0.08], "bins":np.linspace(-2, 2, 251)},
+    #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".VOID.dat.2pcf",
     #     "begcffile":""
     #     }
 
     # dict_labels_X = {
-    #     "first":{"label":"SK", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":r"$\alpha_\mathrm{med, SK}$", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":r"$\sigma_\mathrm{SK}$", "filename":inpath_SK_vh, "color":"blue"},
-    #     "second":{"label":r"SK$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, SK}_\mathrm{def}}$", "alphamed":r"$\alpha_{\mathrm{med, SK}_\mathrm{def}}$", "alpha":r"$\alpha_{\mathrm{SK}_\mathrm{def}}$", "sigma":r"$\sigma_{\mathrm{SK}_\mathrm{def}}$", "filename":inpath_SK_imp_vh, "color":"red"},
+    #     "first":{"label":"SK$_\mathrm{{B}}$",                  "alphabest":r"$\alpha_\mathrm{best, SK}$",               "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{B}}}}",                     "alpha":r"$\alpha_\mathrm{SK}$",                "sigma":"\\sigma_{{\\mathrm{{SK}}_\\mathrm{{B}}}}",                     "filename":inpath_SK_vh, "color":"blue"},
+    #     "second":{"label":r"SK$_\mathrm{def}$", "alphabest":r"$\alpha_{\mathrm{best, SK}_\mathrm{def}}", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{def}}}}", "alpha":r"$\alpha_{\mathrm{SK}_\mathrm{def}}$", "sigma":"\\sigma_{{\\mathrm{{SK}}_\\mathrm{{def}}}}", "filename":inpath_SK_imp_vh, "color":"red"},
     #     "filename":outpath + "X_B_SK_SKimp",
     #     "label":"X",
     #     "color":"red",
     #     "alphamed":{"ticks":[0.98, 0.99, 1.0, 1.01, 1.02], "bins":np.linspace(0.8, 1.2, 101)},
     #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "tensionparams":{"minval":-0.8, "maxval":0.8, "ticks":[-0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.1, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
-    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.003, -0.002, -0.001, 0, 0.001], "bins":np.linspace(-0.05, 0.05, 501)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-2, 2, 501)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5], "bins":np.linspace(-2, 2, 201)},
+    #     "deltaalphaoveralpha":{"minval":-0.005, "maxval":0.005, "ticks":[-0.004, -0.002, 0], "bins":np.linspace(-0.05, 0.05, 251)},
+    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.08, -0.04, 0, 0.04, 0.08], "bins":np.linspace(-2, 2, 251)},
+    #     "deltaalphaoveravgsigma":{"minval":-0.5, "maxval":0.5, "ticks":[-0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5], "bins":np.linspace(-2, 2, 101)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
     #     "endcffile":".dat.dr.2pcf",
     #     "begcffile":""
     #     }
     # plot_comparison_UL(dict_labels_A, dict_labels_X, keys=["first","second"], figname=outpath + "/AX_B_SK_SK_imp")
     
-    
-    # inpath = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf_CG/"
-    # # obtain_chi2_alpha_evi(inpath +"/CG/" , endcffile=".VOID.dat.2pcf")
-
+    # exit()
+    ### Plot 5: A_B_CGrec_SKrec
     # dict_labels = {
-    #     "first":{"label":"CGo", "alphabest":r"$\alpha_\mathrm{best, CGo}$", "alphamed":r"$\alpha_\mathrm{med, CGo}$", "alpha":r"$\alpha_\mathrm{CGo}$", "sigma":r"$\sigma_\mathrm{CGo}$", "filename":inpath + "/stitched_16R_G2048_50_G512_2000_CG/","color":"blue"},
-    #     "second":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":r"$\alpha_\mathrm{med, CG}$", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":r"$\sigma_\mathrm{CG}$", "filename":inpath + "/CG/", "color":"green"},
-    #     "filename":outpath + "tA_B_CG_CGo",
+    #     "first": {"label":"CG$_\\mathdefault{{B}}$", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_\\mathrm{{CG}}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_\\mathrm{{CG}}", "filename":inpath104, "color":"green"},
+    #     "second":{"label":"SK$_\\mathdefault{{B}}$", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":"\\alpha_\\mathrm{{SK}}", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":"\\sigma_\\mathrm{{SK}}", "filename":inpath105, "color":"blue"},
+    #     "filename":outpath + "A_B_CGrec_SKrec",
     #     "color":"blue",
-    #     "alphamed":{"ticks":[0.99, 1.0, 1.01, 1.02], "bins":np.linspace(0.8, 1.2, 101)},
-    #     "bayesfactor":{"minval":-3, "maxval":3, "ticks":[-2, -1, 0, 1, 2], "bins":np.linspace(-4, 4, 51)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-4, 4, 1001)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.01, "ticks":[-0.001, -0.0005, 0, 0.0005, 0.001], "bins":np.linspace(-0.1, 0.1, 2001)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.05, -0.025, 0, 0.025, 0.05], "bins":np.linspace(-1, 1, 201)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 201)},
+    #     "alphamed":{"ticks":[0.95, 1.0, 1.05], "bins":np.linspace(0.8, 1.2, 51)},
+    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.8, -0.4, 0, 0.4, 0.8], "bins":np.linspace(-2, 2, 101)},
+    #     "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
+    #     "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "endcffile":".VOID.dat.2pcf",
+    #     "begcffile":"void"
+    #     }
+    # plot_rec_comparison(dict_labels, keys=["first","second"], outliers=False)
+
+    ###### LC Plots  
+    ######
+
+    ### Plot A; First volume
+    # inpath_lc = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new/"
+    # dict_labels = {
+    #     "first":{"label":"PAR", "alphabest":r"$\alpha_\mathrm{best, PAR}$", "alphamed":"\\alpha_\\mathrm{{PAR}}", "alpha":r"$\alpha_\mathrm{PAR}$", "sigma":"\\sigma_\\mathrm{{PAR}}", "filename":inpath_lc + "parab_60_150_gauss/", "color":"magenta"},
+    #     "second":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_\\mathrm{{CG}}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_\\mathrm{{CG}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
+    #     "third":{"label":"SK", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":"\\alpha_\\mathrm{{SK}}", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":"\\sigma_\\mathrm{{SK}}", "filename":inpath_lc + "avg_16R_2000_SK_60_150/","color":"blue"},
+    #     "forth":{"label":"SKB", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":"\\alpha_\\mathrm{{SKB}}", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":"\\sigma_\\mathrm{{SKB}}", "filename":inpath_lc + "stitched_G2048_50_G512_2000_SK_B/", "color":"magenta"},
+    #     "fifth":{"label":"CGB", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":"\\alpha_\\mathrm{{CGB}}", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":"\\sigma_\\mathrm{{CGB}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
+    #     "sixth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":"\\alpha_\\mathrm{{fix c}}", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":"\\sigma_\\mathrm{{fix c}}$", "filename":inpath_lc + "parab_60_150_fixc/", "color":"magenta"},
+    #     "filename":outpath + "A_LC_CG_SK_CGB_SKB_par_fixc",
+    #     "color":"blue",
+    #     "alphamed":{"ticks":[0.9, 1.0, 1.1, 1.2], "bins":np.linspace(0.8, 1.2, 51)},
+    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.8, -0.4, 0, 0.4, 0.8], "bins":np.linspace(-2, 2, 101)},
+    #     "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
+    #     "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "endcffile":".dat.2pcf",
+    #     "begcffile":""
+    #     }
+
+    # plot_comparison(dict_labels, keys=["first", "second", "third","forth", "fifth", "sixth"], outliers=False)
+
+
+    ### Plot B; First volume; fixed Sigma_nl
+    # inpath_lc_snl="/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new/fixSigmaNL/"    
+    # dict_labels = {
+    #     "first":{"label":"PAR", "alphabest":r"$\alpha_\mathrm{best, PAR}$", "alphamed":"\\alpha_\\mathrm{{PAR}}", "alpha":r"$\alpha_\mathrm{PAR}$", "sigma":"\\sigma_\\mathrm{{PAR}}", "filename":inpath_lc_snl + "parab_60_150_gauss/", "color":"magenta"},
+    #     "second":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_\\mathrm{{CG}}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_\\mathrm{{CG}}", "filename":inpath_lc_snl + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
+    #     "third":{"label":"SK", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":"\\alpha_\\mathrm{{SK}}", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":"\\sigma_\\mathrm{{SK}}", "filename":inpath_lc_snl + "avg_16R_2000_SK_60_150/","color":"blue"},
+    #     "forth":{"label":"SKB", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":"\\alpha_\\mathrm{{SKB}}", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":"\\sigma_\\mathrm{{SKB}}", "filename":inpath_lc_snl + "stitched_G2048_50_G512_2000_SK_B/", "color":"magenta"},
+    #     "fifth":{"label":"CGB", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":"\\alpha_\\mathrm{{CGB}}", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":"\\sigma_\\mathrm{{CGB}}", "filename":inpath_lc_snl + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
+    #     "sixth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":"\\alpha_\\mathrm{{fix c}}", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":"\\sigma_\\mathrm{{fix c}}$", "filename":inpath_lc_snl + "parab_60_150_fixc/", "color":"magenta"},
+    #     "filename":outpath + "A_LC_fixsnl_CG_SK_CGB_SKB_par_fixc",
+    #     "color":"blue",
+    #     "alphamed":{"ticks":[0.9, 1.0, 1.1, 1.2], "bins":np.linspace(0.8, 1.2, 51)},
+    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.8, -0.4, 0, 0.4, 0.8], "bins":np.linspace(-2, 2, 101)},
+    #     "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
+    #     "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "endcffile":".dat.2pcf",
+    #     "begcffile":""
+    #     }
+
+    # plot_comparison(dict_labels, keys=["first", "second", "third","forth", "fifth", "sixth"], outliers=False)
+
+
+    ### From 27.07.2022
+    ### Plot C; Larger volume; fixed Sigma_nl
+    # inpath_lc = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real_large_V_100X_2_20X/vv2pcf/"
+    # dict_labels = {
+    #     "first":{"label":"PAR", "alphabest":r"$\alpha_\mathrm{best, PAR}$", "alphamed":"\\alpha_{{\\mathrm{{PAR}}_\\mathdefault{{G}}}}", "alpha":r"$\alpha_\mathrm{PAR}$", "sigma":"\\sigma_\\mathrm{{PAR}}",           "filename":inpath_lc + "parab_60_150_gauss/", "color":"magenta"},
+    #     "second":{"label":"CG$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_\\mathrm{{CG}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
+    #     "third":{"label":"SK$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":"\\sigma_\\mathrm{{SK}}",  "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_SK_LC/","color":"blue"},
+    #     "forth":{"label":"SK$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":"\\sigma_\\mathrm{{SKB}}", "filename":inpath_lc + "stitched_G2048_50_G512_2000_SK_B_60_150/", "color":"magenta"},
+    #     "fifth":{"label":"CG$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":"\\sigma_\\mathrm{{CGB}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
+    #     "sixth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":"\\alpha_\\mathrm{{fix~c}}", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":"\\sigma_\\mathrm{{fix c}}$",                       "filename":inpath_lc + "parab_60_150_fixc/", "color":"magenta"},
+    #     "filename":outpath + "A_LC_fixsnl_CG_SK_CGB_SKB_par_fixc_largev",
+    #     "color":"blue",
+    #     "alphamed":{"ticks":[0.95, 1.0, 1.05], "bins":np.linspace(0.8, 1.2, 51)},
+    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.8, -0.4, 0, 0.4, 0.8], "bins":np.linspace(-2, 2, 101)},
+    #     "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
+    #     "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "endcffile":".dat.2pcf",
+    #     "begcffile":"void"
+    #     }
+
+    # plot_comparison(dict_labels, keys=["first", "second", "third","forth", "fifth", "sixth"], outliers=False)
+    # plot_corner_2outliers(dict_labels, keys=["first", "second", "third", "forth", "fifth", "sixth"])
+    
+    # ### Plot D; Larger volume; fixed Sigma_nl, no parab with gauss model
+    # dict_labels = {
+    #     "first":{"label":"CG$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_\\mathrm{{CG}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
+    #     "second":{"label":"SK$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":"\\sigma_\\mathrm{{SK}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_SK_LC/","color":"blue"},
+    #     "third":{"label":"SK$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":"\\sigma_\\mathrm{{SKB}}", "filename":inpath_lc + "stitched_G2048_50_G512_2000_SK_B_60_150/", "color":"magenta"},
+    #     "forth":{"label":"CG$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":"\\sigma_\\mathrm{{CGB}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
+    #     "fifth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":"\\alpha_\\mathrm{{fix~c}}", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":"\\sigma_\\mathrm{{fix c}}$", "filename":inpath_lc + "parab_60_150_fixc/", "color":"magenta"},
+    #     "filename":outpath + "A_LC_fixsnl_CG_SK_CGB_SKB_fixc_largev",
+    #     "color":"blue",
+    #     "alphamed":{"ticks":[0.9, 1.0, 1.1, 1.2], "bins":np.linspace(0.8, 1.2, 51)},
+    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-2, -1, 0, 1, 2], "bins":np.linspace(-10, 10, 101)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.2, 0, 0.2], "bins":np.linspace(-2, 2, 101)},
+    #     "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
+    #     "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "endcffile":".dat.2pcf",
+    #     "begcffile":"void"
+    #     }
+
+    # plot_comparison(dict_labels, keys=["first", "second", "third","forth", "fifth"], outliers=False)
+
+
+    ### From 27.07.2022
+    ### Plot E; Larger volume; fixed Sigma_nl
+    inpath_lc = "/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real_large_V_100X_2_20X/vhxcf/"
+    
+    dict_labels = {
+        "first":{"label":"PAR", "alphabest":r"$\alpha_\mathrm{best, PAR}$", "alphamed":"\\alpha_{{\\mathrm{{PAR}}_\\mathdefault{{G}}}}", "alpha":r"$\alpha_\mathrm{PAR}$", "sigma":"\\sigma_\\mathrm{{PAR}}",           "filename":inpath_lc + "parab_60_150_gauss/", "color":"magenta"},
+        "second":{"label":"CG$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_\\mathrm{{CG}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
+        "third":{"label":"SK$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":"\\sigma_\\mathrm{{SK}}",  "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_SK_LC/","color":"blue"},
+        "forth":{"label":"SK$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":"\\sigma_\\mathrm{{SKB}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_SK_B/", "color":"magenta"},
+        "fifth":{"label":"CG$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":"\\sigma_\\mathrm{{CGB}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
+        "sixth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":"\\alpha_\\mathrm{{fix~c}}", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":"\\sigma_\\mathrm{{fix c}}$",                       "filename":inpath_lc + "parab_60_150_fixc/", "color":"magenta"},
+        "filename":outpath + "X_LC_fixsnl_CG_SK_CGB_SKB_par_fixc_largev",
+        "color":"blue",
+        "alphamed":{"ticks":[0.95, 1.0, 1.05], "bins":np.linspace(0.8, 1.2, 51)},
+        "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
+        "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+        "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.8, -0.4, 0, 0.4, 0.8], "bins":np.linspace(-2, 2, 101)},
+        "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
+        "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+        "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+        "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+        "endcffile":".dat.xcf",
+        "begcffile":"void"
+        }
+
+    plot_comparison(dict_labels, keys=["first", "second", "third","forth", "fifth", "sixth"], outliers=True)
+    # plot_corner_2outliers(dict_labels, keys=["first", "second", "third", "forth", "fifth", "sixth"])
+    
+    ### Plot F; Larger volume; fixed Sigma_nl, no parab with gauss model
+    # dict_labels = {
+    #     "first":{"label":"CG$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":"\\sigma_\\mathrm{{CG}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
+    #     "second":{"label":"SK$_\\mathrm{{LC}}$", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{LC}} }}", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":"\\sigma_\\mathrm{{SK}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_SK_LC/","color":"blue"},
+    #     "third":{"label":"SK$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":"\\alpha_{{\\mathrm{{SK}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":"\\sigma_\\mathrm{{SKB}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_SK_B/", "color":"magenta"},
+    #     "forth":{"label":"CG$_\\mathrm{{B}}$", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":"\\alpha_{{\\mathrm{{CG}}_\\mathrm{{B}} }}", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":"\\sigma_\\mathrm{{CGB}}", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
+    #     "fifth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":"\\alpha_\\mathrm{{fix~c}}", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":"\\sigma_\\mathrm{{fix c}}$", "filename":inpath_lc + "parab_60_150_fixc/", "color":"magenta"},
+    #     "filename":outpath + "X_LC_fixsnl_CG_SK_CGB_SKB_fixc_largev",
+    #     "color":"blue",
+    #     "alphamed":{"ticks":[0.9, 1.0, 1.1, 1.2], "bins":np.linspace(0.8, 1.2, 51)},
+    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-2, -1, 0, 1, 2], "bins":np.linspace(-10, 10, 101)},
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.2, 0, 0.2], "bins":np.linspace(-2, 2, 101)},
+    #     "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
+    #     "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
+    #     "alphamoneoversigma":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "endcffile":".dat.xcf",
+    #     "begcffile":"void"
+    #     }
+
+    # plot_comparison(dict_labels, keys=["first", "second", "third","forth", "fifth"], outliers=False)
+        
+
+    #####
+    # path = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/"
+
+    #### Plot 5: A_B_DAMPA1_DAMPA2
+    # dict_labels1 = {
+    #     "first": {"label":"a=1", "alphabest":r"$\alpha_\mathrm{best, a1}$", "alphamed":r"$\alpha_\mathrm{{a1}}$", "alpha":r"$\alpha_\mathrm{a1}$", "sigma":r"$\sigma_\mathrm{a1}$", "filename":path + "/damp_a_1/parab_60_150_fixc/", "color":"blue"},
+    #     "second":{"label":"a=2", "alphabest":r"$\alpha_\mathrm{best, a2}$", "alphamed":r"$\alpha_\mathrm{{a2}}$", "alpha":r"$\alpha_\mathrm{a2}$", "sigma":r"$\sigma_\mathrm{a2}$", "filename":path + "/parab/vv2pcf/parab_60_150_fixc/", "color":"blue"},
+    #     "filename":outpath + "/A_B_DAMP1_DAMP2",
+    #     "label":"A",
+    #     "color":"blue",
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-0.8, "maxval":0.8, "ticks":[-0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.1, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
+    #     "deltaalphaoveravgsigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15], "bins":np.linspace(-2, 2, 201)},
+    #     "deltasigmaoversigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.09, -0.06, -0.03, 0, 0.03, 0.06, 0.09], "bins":np.linspace(-2, 2, 401)},
     #     "endcffile":".VOID.dat.2pcf",
     #     "begcffile":""
     #     }
-    # plot_comparison(dict_labels, keys=["first","second"], outliers=False)
 
-    
-    ######
-    inpath_lc="/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new/"
-    inpath_lc2="/scratch/variu/phd_fitOut/patchy_cmass_subset/lightcone_box1_1000CF/real/vv2pcf_new2/"
-    
-    dict_labels = {
-        "first":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":r"$\alpha_\mathrm{med, CG}$", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":r"$\sigma_\mathrm{CG}$", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
-        "second":{"label":"SK", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":r"$\alpha_\mathrm{med, SK}$", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":r"$\sigma_\mathrm{SK}$", "filename":inpath_lc + "avg_16R_2000_SK_60_150/","color":"blue"},
-        "third":{"label":"SKB", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":r"$\alpha_\mathrm{med, SKB}$", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":r"$\sigma_\mathrm{SKB}$", "filename":inpath_lc + "stitched_G2048_50_G512_2000_SK_B/", "color":"magenta"},
-        "forth":{"label":"CGB", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":r"$\alpha_\mathrm{med, CGB}$", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":r"$\sigma_\mathrm{CGB}$", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
-        "fifth":{"label":"PAR", "alphabest":r"$\alpha_\mathrm{best, PAR}$", "alphamed":r"$\alpha_\mathrm{med, PAR}$", "alpha":r"$\alpha_\mathrm{PAR}$", "sigma":r"$\sigma_\mathrm{PAR}$", "filename":inpath_lc + "parab_60_150_gauss/", "color":"magenta"},
-        "sixth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":r"$\alpha_\mathrm{med, fix c}$", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":r"$\sigma_\mathrm{fix c}$", "filename":inpath_lc + "parab_60_150_fixc/", "color":"magenta"},
-        "filename":outpath + "A_LC_CG_SK_CGB_SKB_par_fixc",
-        "color":"blue",
-        "alphamed":{"ticks":[0.9, 1.0, 1.1, 1.2], "bins":np.linspace(0.8, 1.2, 51)},
-        "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
-        "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-        "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.8, -0.4, 0, 0.4, 0.8], "bins":np.linspace(-2, 2, 101)},
-        "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
-        "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
-        "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
-        "endcffile":".dat.2pcf",
-        "begcffile":""
-        }
-    plot_comparison(dict_labels, keys=["first","second","third", "forth", "fifth", "sixth"], outliers=False)
-    
-    dict_labels = {
-        "first":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":r"$\alpha_\mathrm{med, CG}$", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":r"$\sigma_\mathrm{CG}$", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
-        "second":{"label":"SK", "alphabest":r"$\alpha_\mathrm{best, SK}$", "alphamed":r"$\alpha_\mathrm{med, SK}$", "alpha":r"$\alpha_\mathrm{SK}$", "sigma":r"$\sigma_\mathrm{SK}$", "filename":inpath_lc + "avg_16R_2000_SK_60_150/","color":"blue"},
-        "third":{"label":"SKB", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":r"$\alpha_\mathrm{med, SKB}$", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":r"$\sigma_\mathrm{SKB}$", "filename":inpath_lc + "stitched_G2048_50_G512_2000_SK_B/", "color":"magenta"},
-        "forth":{"label":"CGB", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":r"$\alpha_\mathrm{med, CGB}$", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":r"$\sigma_\mathrm{CGB}$", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
-        "fifth":{"label":"fix c", "alphabest":r"$\alpha_\mathrm{best, fix c}$", "alphamed":r"$\alpha_\mathrm{med, fix c}$", "alpha":r"$\alpha_\mathrm{fix c}$", "sigma":r"$\sigma_\mathrm{fix c}$", "filename":inpath_lc + "parab_60_150_fixc/", "color":"magenta"},
-        "filename":outpath + "A_LC_CG_SK_CGB_SKB_fixc",
-        "color":"blue",
-        "alphamed":{"ticks":[0.9, 1.0, 1.1, 1.2], "bins":np.linspace(0.8, 1.2, 51)},
-        "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-10, 10, 101)},
-        "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-        "tensionparams":{"minval":-1, "maxval":1, "ticks":[-0.8, -0.4, 0, 0.4, 0.8], "bins":np.linspace(-2, 2, 101)},
-        "deltaalphaoveralpha":{"minval":-0.05, "maxval":0.05, "ticks":[-0.04, -0.02, 0, 0.02, 0.04], "bins":np.linspace(-0.1, 0.1, 201)},
-        "deltasigmaoversigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
-        "deltaalphaoveravgsigma":{"minval":-1, "maxval":1, "ticks":[-0.6, -0.3, 0, 0.3, 0.6], "bins":np.linspace(-1, 1, 51)},
-        "endcffile":".dat.2pcf",
-        "begcffile":""
-        }
-    plot_comparison(dict_labels, keys=["first","second","third", "forth", "fifth"], outliers=False)
-    
-    # exit()
-    
-    # outpath = "/home/astro/variu/temp/"
-
-    # dict_labels = {
-    #     "first":{"label":"fixco", "alphabest":r"$\alpha_\mathrm{best, fixco}$", "alphamed":r"$\alpha_\mathrm{med, fixco}$", "alpha":r"$\alpha_\mathrm{fixco}$", "sigma":r"$\sigma_\mathrm{fixco}$", "filename":inpath_lc2 + "parab_60_150_fixc/","color":"blue"},
-    #     "second":{"label":"fixc", "alphabest":r"$\alpha_\mathrm{best, fixc}$", "alphamed":r"$\alpha_\mathrm{med, fixc}$", "alpha":r"$\alpha_\mathrm{fixc}$", "sigma":r"$\sigma_\mathrm{fixc}$", "filename":inpath_lc + "parab_60_150_fixc/", "color":"green"},
-    #     "filename":outpath + "A_LC_fixc_fixco",
-    #     "color":"blue",
-    #     "alphamedticks":[0.9, 1.0, 1.1, 1.2],
-    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-0.4, -0.2, 0, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.01, "ticks":[-0.01, -0.005, 0, 0.005, 0.01], "bins":np.linspace(-0.1, 0.1, 1001)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.15, -0.05, 0, 0.05, 0.15], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "endcffile":".dat.2pcf",
+    # dict_labels2 = {
+    #     "first": {"label":"a=1", "alphabest":r"$\alpha_\mathrm{best, a1}$", "alphamed":r"$\alpha_\mathrm{{a1}}$", "alpha":r"$\alpha_\mathrm{a1}$", "sigma":r"$\sigma_\mathrm{a1}$", "filename":path + "/damp_a_1/stitched_16R_G2048_50_G512_2000_CG/", "color":"orange"},
+    #     "second":{"label":"a=2", "alphabest":r"$\alpha_\mathrm{best, a2}$", "alphamed":r"$\alpha_\mathrm{{a2}}$", "alpha":r"$\alpha_\mathrm{a2}$", "sigma":r"$\sigma_\mathrm{a2}$", "filename":path + "/vv2pcf_CG/stitched_16R_G2048_50_G512_2000_CG/", "color":"orange"},
+    #     "filename":outpath + "/A_B_DAMP1_DAMP2",
+    #     "label":"A",
+    #     "color":"orange",
+    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 21)},
+    #     "tensionparams":{"minval":-0.8, "maxval":0.8, "ticks":[-0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.1, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
+    #     "deltaalphaoveravgsigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15], "bins":np.linspace(-2, 2, 201)},
+    #     "deltasigmaoversigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.09, -0.06, -0.03, 0, 0.03, 0.06, 0.09], "bins":np.linspace(-2, 2, 401)},
+    #     "endcffile":".VOID.dat.2pcf",
     #     "begcffile":""
     #     }
-    # plot_comparison(dict_labels, keys=["first","second"], outliers=False)
 
-
-    # dict_labels = {
-    #     "first":{"label":"PARo", "alphabest":r"$\alpha_\mathrm{best, PARo}$", "alphamed":r"$\alpha_\mathrm{med, PARo}$", "alpha":r"$\alpha_\mathrm{PARo}$", "sigma":r"$\sigma_\mathrm{PARo}$", "filename":inpath_lc2 + "parab_60_150_gauss/","color":"blue"},
-    #     "second":{"label":"PAR", "alphabest":r"$\alpha_\mathrm{best, PAR}$", "alphamed":r"$\alpha_\mathrm{med, PAR}$", "alpha":r"$\alpha_\mathrm{PAR}$", "sigma":r"$\sigma_\mathrm{PAR}$", "filename":inpath_lc + "parab_60_150_gauss/", "color":"green"},
-    #     "filename":outpath + "A_LC_PAR_PARo",
-    #     "color":"blue",
-    #     "alphamedticks":[0.9, 1.0, 1.1, 1.2],
-    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-0.4, -0.2, 0, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.01, "ticks":[-0.01, -0.005, 0, 0.005, 0.01], "bins":np.linspace(-0.1, 0.1, 1001)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.15, -0.05, 0, 0.05, 0.15], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "endcffile":".dat.2pcf",
-    #     "begcffile":""
-    #     }
-    # plot_comparison(dict_labels, keys=["first","second"], outliers=False)
-
-    # dict_labels = {
-    #     "first":{"label":"CGo", "alphabest":r"$\alpha_\mathrm{best, CGo}$", "alphamed":r"$\alpha_\mathrm{med, CGo}$", "alpha":r"$\alpha_\mathrm{CGo}$", "sigma":r"$\sigma_\mathrm{CGo}$", "filename":inpath_lc2 + "stitched_16R_G2048_50_G512_2000_CG_LC/","color":"blue"},
-    #     "second":{"label":"CG", "alphabest":r"$\alpha_\mathrm{best, CG}$", "alphamed":r"$\alpha_\mathrm{med, CG}$", "alpha":r"$\alpha_\mathrm{CG}$", "sigma":r"$\sigma_\mathrm{CG}$", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_LC/", "color":"green"},
-    #     "filename":outpath + "A_LC_CG_CGo",
-    #     "color":"blue",
-    #     "alphamedticks":[0.9, 1.0, 1.1, 1.2],
-    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-0.4, -0.2, 0, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.01, "ticks":[-0.01, -0.005, 0, 0.005, 0.01], "bins":np.linspace(-0.1, 0.1, 1001)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.15, -0.05, 0, 0.05, 0.15], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "endcffile":".dat.2pcf",
-    #     "begcffile":""
-    #     }
-    # plot_comparison(dict_labels, keys=["first","second"], outliers=False)
-
-    # dict_labels = {
-    #     "first":{"label":"SKBo", "alphabest":r"$\alpha_\mathrm{best, SKBo}$", "alphamed":r"$\alpha_\mathrm{med, SKBo}$", "alpha":r"$\alpha_\mathrm{SKBo}$", "sigma":r"$\sigma_\mathrm{SKBo}$", "filename":inpath_lc2 + "stitched_G2048_50_G512_2000_SK_B/", "color":"magenta"},
-    #     "second":{"label":"SKB", "alphabest":r"$\alpha_\mathrm{best, SKB}$", "alphamed":r"$\alpha_\mathrm{med, SKB}$", "alpha":r"$\alpha_\mathrm{SKB}$", "sigma":r"$\sigma_\mathrm{SKB}$", "filename":inpath_lc + "stitched_G2048_50_G512_2000_SK_B/", "color":"magenta"},
-    #     "filename":outpath + "A_LC_SKB_SKB",
-    #     "color":"blue",
-    #     "alphamedticks":[0.9, 1.0, 1.1, 1.2],
-    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-0.4, -0.2, 0, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.01, "ticks":[-0.01, -0.005, 0, 0.005, 0.01], "bins":np.linspace(-0.1, 0.1, 1001)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.15, -0.05, 0, 0.05, 0.15], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "endcffile":".dat.2pcf",
-    #     "begcffile":""
-    #     }
-    # plot_comparison(dict_labels, keys=["first","second"], outliers=False)
-
-    # dict_labels = {
-    #     "first":{"label":"CGBo", "alphabest":r"$\alpha_\mathrm{best, CGBo}$", "alphamed":r"$\alpha_\mathrm{med, CGBo}$", "alpha":r"$\alpha_\mathrm{CGBo}$", "sigma":r"$\sigma_\mathrm{CGBo}$", "filename":inpath_lc2 + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
-    #     "second":{"label":"CGB", "alphabest":r"$\alpha_\mathrm{best, CGB}$", "alphamed":r"$\alpha_\mathrm{med, CGB}$", "alpha":r"$\alpha_\mathrm{CGB}$", "sigma":r"$\sigma_\mathrm{CGB}$", "filename":inpath_lc + "stitched_16R_G2048_50_G512_2000_CG_B/", "color":"magenta"},
-    #     "filename":outpath + "A_LC_CGB_CGB",
-    #     "color":"blue",
-    #     "alphamedticks":[0.9, 1.0, 1.1, 1.2],
-    #     "bayesfactor":{"minval":-10, "maxval":10, "ticks":[-0.4, -0.2, 0, 0.2, 0.4], "bins":np.linspace(-1, 1, 101)},
-    #     "pullone":{"minval":-4, "maxval":4, "ticks":[-4, -2, 0, 2, 4], "bins":np.linspace(-4, 4, 41)},
-    #     "tensionparams":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveralpha":{"minval":-0.01, "maxval":0.01, "ticks":[-0.01, -0.005, 0, 0.005, 0.01], "bins":np.linspace(-0.1, 0.1, 1001)},
-    #     "deltasigmaoversigma":{"minval":-0.2, "maxval":0.2, "ticks":[-0.15, -0.05, 0, 0.05, 0.15], "bins":np.linspace(-1, 1, 1001)},
-    #     "deltaalphaoveravgsigma":{"minval":-0.1, "maxval":0.1, "ticks":[-0.06, -0.03, 0, 0.03, 0.06], "bins":np.linspace(-1, 1, 1001)},
-    #     "endcffile":".dat.2pcf",
-    #     "begcffile":""
-    #     }
-    # plot_comparison(dict_labels, keys=["first","second"], outliers=False)
-
-    
-
+    # plot_dampA1_dampA2(dict_labels1, dict_labels2, keys=["first", "second"], outpath=outpath)
 
 
 if __name__== '__main__':
-    main()
+    # main()
