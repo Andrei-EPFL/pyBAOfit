@@ -7,20 +7,20 @@ from getdist import plots, MCSamples, loadMCSamples
 import sys, os
 
 
-def my_sample(fileroot, npar):
+def my_sample(fileroot, npar, names):
   # Setting parameter names and ranges
   if(npar==4):
-    names = ['alpha', 'B_V', 'Snl_VV', 'c_VV']
+    # names = ['alpha', 'B_V', 'Snl_VV', 'c_VV']
     labels = ["\\alpha", "B_{\\mathrm{V}}", "\\Sigma_{\\mathrm{nl}, VV}", "c_{VV}"]
   elif(npar==3):
-    names = ['alpha', 'B_V', 'Snl_VV']
+    # names = ['alpha', 'B_V', 'Snl_VV']
     labels = ["\\alpha", "B", "\\Sigma_{\\mathrm{nl}}"]
   elif(npar==6):
+    # names = ["alpha", "B_V", "Snl_VV","a0_VV", "a1_VV", "a2_VV"] 
     labels = ["\\alpha", "B_{\\mathrm{V}}", "\\Sigma_{\\mathrm{nl}, VV}", "a_{0, {\\mathrm{VV}}}", "a_{1, {\\mathrm{VV}}}", "a_{2, {\\mathrm{VV}}}"]
-    names = ["alpha", "B_V", "Snl_VV","a0_VV", "a1_VV", "a2_VV"] 
   elif(npar==7):
+    # names = ["alpha", "B_V", "Snl_VV", "c_VV","a0_VV", "a1_VV", "a2_VV"] 
     labels = ["\\alpha", "B_{\\mathrm{V}}", "\\Sigma_{\\mathrm{nl}, VV}", "c_{VV}", "a_{0, {\\mathrm{VV}}}", "a_{1, {\\mathrm{VV}}}", "a_{2, {\\mathrm{VV}}}"]
-    names = ["alpha", "B_V", "Snl_VV", "c_VV","a0_VV", "a1_VV", "a2_VV"] 
   else:
     print("choose npar correctly")
     sys.exit()
@@ -55,7 +55,9 @@ def my_sample(fileroot, npar):
 def plot_corner(samples, ofile, colors, legends, line_args):
 
   g = plots.getSubplotPlotter()
-  g.settings.lab_fontsize = 16
+  g.settings.lab_fontsize = 20
+  g.settings.axes_fontsize = 16
+  g.settings.legend_fontsize = 20
   #g.settings.alpha_filled_add = 0.5
   #g.settings.alpha_factor_contour_lines = 0.5
   # g.settings.line_styles = "tab20"
@@ -104,7 +106,9 @@ def main():
 
   plt.rcParams.update({'font.family': "serif"})
   plt.rcParams.update({'font.serif': "Times New Roman"})
-  mpl.rcParams.update({'font.size': 16})
+  plt.rcParams['xtick.labelsize']=20
+  plt.rcParams['ytick.labelsize']=20
+  mpl.rcParams.update({'font.size': 20})
 
   mpl.rcParams['mathtext.fontset'] = 'cm'
   mpl.rcParams['mathtext.rm'] = 'serif'
@@ -129,40 +133,63 @@ def main():
   # plot_corner([sample_1, sample_2], ofile1, ["green", "magenta"], ["parab0", "parab1"], [{"lw":0.7, "color":"green","ls":"--"}, {"lw":0.7, "color":"magenta","ls":"--"}])
   
 
+  # ofile = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/redshift_recon/vv2pcf_fix_c/avg/BAOfit_avg_16R_500_recon.2pcf_parab.png"
+  # sample_1 = my_sample("/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/redshift_recon/vv2pcf_fix_c/avg/parab_60_150/BAOfit_avg_16R_500_recon.2pcf_", 4)
+  # sample_2 = my_sample("/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/redshift_recon/parab/vv2pcf/avg_fit/parab_60_150/BAOfit_avg_16R_500_recon.2pcf_", 4)
+  
+  # plot_corner([sample_1, sample_2], ofile, ["red", "blue"], ["parab1", "parab2"], [{"lw":0.7, "color":"red","ls":"--"}, {"lw":0.7, "color":"blue","ls":"--"}])
+
   # exit()
   
-  # ofile = "/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/BAOfit_avg_sc_parab_nuisance.png"
-  # models = ["/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/parab/BAOfit_avg_sc_", "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/parab/vv2pcf/range_test/scaled_covariance/parab_60_150/BAOfit_avg_16R.2pcf_"]
+  main_baoflit_tmp = "/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/"
+  main_box1_fit = "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/"
+
+
+  # ofile = f"{main_baoflit_tmp}BAOfit_avg_sc_parab_nuisance.png"
+  # models = [f"{main_baoflit_tmp}parab/BAOfit_avg_sc_", f"{main_box1_fit}parab/vv2pcf/range_test/scaled_covariance/parab_60_150/BAOfit_avg_16R.2pcf_", f"{main_box1_fit}parab/parab_60_150/vv2pcf/avg_fit/parab_60_150/BAOfit_avg_16R.2pcf_", f"{main_box1_fit}parab/parab_60_150/vv2pcf/avg_fit/parab_60_150_2/BAOfit_avg_16R.2pcf_"]
   
+  # ofile = f"{main_baoflit_tmp}BAOfit_avg_16R_vhxcf_sc_parab_nuisance.png"
+  # models = [f"{main_baoflit_tmp}parab/BAOfit_avg_16R_vhxcf_par_", f"{main_box1_fit}parab/vhxcf/range_test/scaled_covariance/parab_60_150/BAOfit_avg_16R_vhxcf.xcf_", f"{main_box1_fit}parab/parab_60_150/vhxcf/parab_60_150/BAOfit_avg_16R_vhxcf.xcf_"]
   
-  # ofile = "/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/BAOfit_CATALPTCICz0.466G960S1057271749.VOID_parab_nuisance.png"
-  # models = ["/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/parab/BAOfit_CATALPTCICz0.466G960S1057271749.VOID_", "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/parab/vv2pcf/parab_60_150_fixc/BAOfit_CATALPTCICz0.466G960S1057271749.VOID.dat.2pcf_"]
+  # ofile = f"{main_baoflit_tmp}BAOfit_CATALPTCICz0.466G960S1057271749.VOID_parab_nuisance.png"
+  # models = [f"{main_baoflit_tmp}parab/BAOfit_CATALPTCICz0.466G960S1057271749.VOID_", f"{main_box1_fit}parab/vv2pcf/parab_60_150_fixc/BAOfit_CATALPTCICz0.466G960S1057271749.VOID.dat.2pcf_"]
+
+  # ofile = f"{main_baoflit_tmp}BAOfit_CATALPTCICz0.466G960S1057271749.VOID_CG_nuisance.png"  
+  # models = [f"{main_box1_fit}nuisance_test/cg_60_150/BAOfit_CATALPTCICz0.466G960S1057271749.VOID.dat.2pcf_"]#[f"{main_baoflit_tmp}cg/BAOfit_CATALPTCICz0.466G960S1057271749.VOID_"]#, f"{main_box1_fit}nuisance_test/cg_60_150/BAOfit_CATALPTCICz0.466G960S1057271749.VOID.dat.2pcf_"]#, f"{main_box1_fit}vv2pcf_CG/stitched_16R_G2048_50_G512_2000_CG/BAOfit_CATALPTCICz0.466G960S1057271749.VOID.dat.2pcf_"]
   
-  # models = ["/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/cg/BAOfit_CATALPTCICz0.466G960S1057271749.VOID_", "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/vv2pcf_CG/stitched_16R_G2048_50_G512_2000_CG/BAOfit_CATALPTCICz0.466G960S1057271749.VOID.dat.2pcf_"]
-  # ofile = "/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/BAOfit_CATALPTCICz0.466G960S1057271749.VOID_CG_nuisance.png"
+  ofile = f"{main_baoflit_tmp}BAOfit_avg_sc_CG_nuisance.png"
+  models = [f"{main_box1_fit}/nuisance_test/cg_60_150/BAOfit_avg_16R.2pcf_"]#[f"{main_baoflit_tmp}cg/BAOfit_avg_sc_", f"{main_box1_fit}/nuisance_test/cg_60_150/BAOfit_avg_16R.2pcf_"]#, f"{main_box1_fit}range_test/vv2pcf/scaled_covariance/stitched_16R_G2048_50_G512_2000_CG_60_150/BAOfit_avg_16R.2pcf_"]
+  # names = [["alpha", "B_V", "Snl_VV","a2_VV", "a1_VV", "a0_VV"], ["alpha", "B_V", "Snl_VV","a0_VV", "a1_VV", "a2_VV"]]
+  names = [["alpha", "B_V", "Snl_VV","a0_VV", "a1_VV", "a2_VV"]]
   
-  models = ["/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/cg/BAOfit_avg_sc_", "/scratch/variu/phd_fitOut/patchy_cmass_subset/box1/real/overlapping/range_test/vv2pcf/scaled_covariance/stitched_16R_G2048_50_G512_2000_CG_60_150/BAOfit_avg_16R.2pcf_"]
-  ofile = "/home/astro/variu/phd/voids/chengscodes/BAOflit_new/tmp/BAOfit_avg_sc_CG_nuisance.png"
-  
-  
+  # ofile = f"{main_baoflit_tmp}BAOfit_avg_16R_vhxcf_sc_cg.png"
+  # models = [f"{main_baoflit_tmp}cg/BAOfit_avg_16R_vhxcf_sc_", f"{main_box1_fit}range_test/vhxcf/scaled_covariance/stitched_16R_G2048_50_G512_2000_CG_60_150/BAOfit_avg_16R_vhxcf.xcf_"]
+
+  # ofile = f"{main_baoflit_tmp}BAOfit_CATALPTCICz0.466G960S1057271749.dat.dr.xcf_cg.png"
+  # models = [f"{main_baoflit_tmp}cg/BAOfit_CATALPTCICz0.466G960S1057271749.dat.dr.xcf_", f"{main_box1_fit}vhxcf_CG/stitched_16R_G2048_50_G512_2000_CG/BAOfit_CATALPTCICz0.466G960S1057271749.dat.dr.2pcf_"]
+
+
   sample_list = []
   line_args = []
-  legend_list = ["C", "py"]
-  color_list = ["red", "blue"]
-  # nparam = [6, 4]
-  nparam = [6, 3]
+  # legend_list = ["C", "py nui"]#, "py"]#, "pynew2"]
+  legend_list = ["CG avg of 500 realizations"]#, "py"]#, "pynew2"]
+  color_list = ["red"]#, "green"]#, "blue"]#, "orange"]
+  # nparam = [7, 4, 4]
+  nparam = [6]#, 3]
+  # nparam = [7, 4, 4, 4]
 
   # # cm = plt.get_cmap('gist_rainbow')
   # # NUM_COLORS = len(models)
   # # color_list = [cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)]
   
   for i, model in enumerate(models):
-    sample_ = my_sample(model, nparam[i])
+    sample_ = my_sample(model, nparam[i], names[i])
     sample_list.append(sample_)
     line_args.append({"lw":0.7, "color":color_list[i],"ls":"--"})
   
   
   plot_corner(sample_list, ofile, color_list, legend_list, line_args)
+  # plot_corner([sample_list[0]], ofile, [color_list[0]], [legend_list[0]], [line_args[0]])
   
 if __name__== '__main__':
   if len(sys.argv) != 1 and len(sys.argv) != 2:
