@@ -330,7 +330,7 @@ class XiModel():
     def xi_model_params(self):
         if(self.model == 'pvoid' or self.model == 'pvoidnw' or self.model == 'galaxy' or self.model == 'pvoid_exclusion' or self.model == 'galaxyx'):
             print('INFO: Using the model: %s.' %(self.model))
-            return ['alpha', 'B', 'Snl']
+            return ['alpha', 'B', 'Snl', 'a0', 'a1', 'a2']
         if(self.model == 'parab' or self.model == 'parabnw' or self.model == 'parabx'):
             print('INFO: Using the model: %s.' %(self.model))
             return ['alpha', 'B', 'Snl', 'c']

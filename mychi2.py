@@ -68,7 +68,7 @@ class Chi2Class():
         self.xid = xid_var
         
         self.list_params = self.xim.list_params
-        self.chi2_norm = self.covmat.nmock - self.xid.nidx - 2
+        self.chi2_norm = (self.covmat.nmock - self.xid.nidx - 2) / (self.covmat.nmock - 1)
       
         print('STATUS: Initialize matrices for least square fitting of the nuisance params.')
         self.basis, self.A, self.M = init_lstsq(self.xid.sd, self.covmat.Rcov, self.xim.npoly, self.xid.imin, self.xid.imax)
@@ -76,6 +76,11 @@ class Chi2Class():
     def chi2_func(self, alpha, params):
         '''Define the (log) likelihood.'''
         B = params[0]
+        a0 = params[2]
+        a1 = params[3]
+        a2 = params[4]
+        
+
         imin = self.xid.imin
         imax = self.xid.imax
         # Compute the model 2PCF with a given alpha
@@ -83,15 +88,15 @@ class Chi2Class():
         xi = fxim(self.xid.sd[imin:imax] * alpha)
 
         # Least square fitting of nuisance parameters
-        dxi = self.xid.xid[imin:imax] - xi * (B**2)
-        poly = np.dot(self.M[:, imin:imax], dxi)
+        dxi = self.xid.xid[imin:imax] - (xi * (B**2) + (a0 * np.ones(len(self.xid.sd[imin:imax]))) + (a1  / self.xid.sd[imin:imax]) + (a2 / (self.xid.sd[imin:imax]**2)))
         
-        a_poly = bwd_subst(self.A, poly)
         
         # Compute chi-squared
         diff = np.zeros(self.xid.ndbin)
-        diff[imin:imax] = dxi - np.dot(np.transpose(self.basis[:, imin:imax]), a_poly)
-        chisq = np.sum((fwd_subst(self.covmat.Rcov, diff))**2)
+        diff[imin:imax] = dxi
+        
+        matrix = self.covmat.icov
+        chisq = np.dot(diff.T, np.dot(matrix, diff))
         return chisq * self.chi2_norm * self.covmat.rescale_chi2_by
 
     def best_fit(self, alpha, params):

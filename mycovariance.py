@@ -31,7 +31,9 @@ class CovMat():
 
         self.min_s_index = min_s_index
         self.nmock, self.Rcov = self.get_cov()
-        
+        self.cov = self.get_icov()
+        self.icov = np.linalg.inv(self.cov)
+
     def get_cov(self):
         '''Read/Compute the pre-processed covariance matrix.
         Return: [Nmock, Rcov], where Rcov is the upper triangular matrix from the
@@ -69,4 +71,29 @@ class CovMat():
             Rcov = np.loadtxt(self.cov_file, skiprows=1)
 
         return [Nmock, Rcov]
+        
+    def get_icov(self):
+        '''Read/Compute the pre-processed covariance matrix.
+        Return: [Nmock, Rcov], where Rcov is the upper triangular matrix from the
+        QR decomposition of the mock matrix.'''
+        if self.compute_cov == True:
+            # Read the list of 2PCF from mocks
+            mocks = []
+            with open(self.input_mocks) as f:
+                for line in f:
+                    fname = line.rstrip('\n')
+                    if fname != '':
+                        mocks.append(fname)
+            Nmock = len(mocks)
+
+            # Read 2PCF of mocks
+            ximock = [None] * Nmock
+            for i in range(Nmock):
+                temp = np.loadtxt(mocks[i], usecols=(self.mock_y_column, ), unpack=True)
+                ximock[i] = temp[self.min_s_index: ]
+
+            ximock = np.array(ximock)
+            cov_ = np.cov(ximock.T)
+
+        return cov_
         
